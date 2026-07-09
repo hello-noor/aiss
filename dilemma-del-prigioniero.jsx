@@ -355,7 +355,7 @@ function Intro({ onDone }) {
             <div style={{ color: "var(--muted)", fontSize: 14, marginTop: 4 }}>{v}</div>
           </div>))}
       </div>
-      <p style={{ marginTop: 16 }}>Ora tocca a te: entra nell'Arena e scala tutti gli avversari.</p></>) },
+      <p style={{ marginTop: 16 }}>Ora tocca a te: scopri le dodici strategie, poi mettile alla prova.</p></>) },
   ];
   const s = slides[i], last = i === slides.length - 1;
   return (
@@ -368,7 +368,7 @@ function Intro({ onDone }) {
         <div style={{ display: "flex", gap: 8 }}>
           {slides.map((_, k) => (<button key={k} onClick={() => setI(k)} aria-label={`Slide ${k + 1}`} style={{ width: 8, height: 8, borderRadius: 999, padding: 0, background: k === i ? "var(--amber)" : "var(--line-strong)" }} />))}
         </div>
-        {last ? <button className="btn primary" onClick={onDone}>Entra nell'Arena →</button> : <button className="btn primary" onClick={() => setI(i + 1)}>Avanti →</button>}
+        {last ? <button className="btn primary" onClick={onDone}>Scopri le strategie →</button> : <button className="btn primary" onClick={() => setI(i + 1)}>Avanti →</button>}
       </div>
     </div>
   );
@@ -441,7 +441,7 @@ function Arena() {
     const title = wins >= n - 1 ? "Leggenda della cooperazione" : wins >= Math.ceil(n * 0.7) ? "Stratega provetto" : wins >= Math.ceil(n * 0.5) ? "Diplomatico navigato" : wins >= Math.ceil(n * 0.3) ? "Apprendista" : "Ancora da rodare";
     return (
       <div className="slidein">
-        <SectionHead eyebrow="Arena · risultato finale" title="Fine della scalata" sub={`Hai affrontato tutti e ${LADDER.length} gli avversari. Ecco come è andata.`} />
+        <SectionHead eyebrow="Solitario · risultato finale" title="Fine della scalata" sub={`Hai affrontato tutti e ${LADDER.length} gli avversari. Ecco come è andata.`} />
         <Rail />
         <div className="card" style={{ padding: 28, textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
           <div className="eyebrow" style={{ color: "var(--amber)" }}>Il tuo titolo</div>
@@ -462,7 +462,7 @@ function Arena() {
 
   return (
     <div>
-      <SectionHead eyebrow={`Arena · avversario ${idx + 1} / ${LADDER.length}`} title="Sei tu al tavolo" sub={`Scegli a ogni round se cooperare o tradire. Dieci round a testa, ${LADDER.length} avversari. Massimizza il tuo punteggio.`} />
+      <SectionHead eyebrow={`Solitario · avversario ${idx + 1} / ${LADDER.length}`} title="Sei tu al tavolo" sub={`Scegli a ogni round se cooperare o tradire. Dieci round a testa, ${LADDER.length} avversari. Massimizza il tuo punteggio.`} />
       <Rail />
 
       {phase === "briefing" && (
@@ -811,12 +811,6 @@ function Duel() {
 /* ============================================================
    DUE GIOCATORI — stesso schermo + online (storage condivisa)
    ============================================================ */
-const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-function makeCode() { let s = ""; for (let i = 0; i < 4; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return s; }
-const hasStorage = typeof window !== "undefined" && window.storage && typeof window.storage.get === "function";
-async function sget(key) { try { const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; } catch (e) { return null; } }
-async function sset(key, val) { try { await window.storage.set(key, JSON.stringify(val), true); return true; } catch (e) { return false; } }
-
 function scorePairLen(mine, theirs, len) {
   let me = 0, opp = 0;
   for (let i = 0; i < len; i++) { me += payoff(mine[i], theirs[i], M0); opp += payoff(theirs[i], mine[i], M0); }
@@ -853,20 +847,108 @@ function RoundPicker({ value, onChange }) {
     </div>
   );
 }
-function ScoreDuo({ label, score, color, side }) {
+/* --- STESSO SCHERMO --- */
+function StrategyBox({ s }) {
   return (
-    <div className="card" style={{ flex: 1, padding: "14px 16px", textAlign: side === "opp" ? "right" : "left", background: "var(--surface2)" }}>
-      <div style={{ ...mono, fontSize: 11, color: "var(--muted)", letterSpacing: ".06em", textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</div>
-      <div style={{ ...serif, fontSize: 38, fontWeight: 700, color, lineHeight: 1 }}>{score}</div>
+    <div className="card" style={{ padding: 16, border: "1px solid var(--amber)", background: "var(--amber-dim)", marginBottom: 18, textAlign: "left" }}>
+      <div className="eyebrow" style={{ color: "var(--amber)", marginBottom: 6 }}>La tua strategia segreta</div>
+      <StratName s={s} big />
+      <p style={{ fontSize: 13.5, color: "var(--text)", margin: "8px 0 10px" }}>{s.tagline}</p>
+      <div style={{ ...mono, background: "var(--bg)", borderRadius: 8, padding: 10, fontSize: 12, color: "var(--amber)", marginBottom: 8 }}>
+        {s.pseudo.map((line, k) => (<div key={k} style={{ display: "flex", gap: 8 }}><span style={{ color: "var(--muted)" }}>{String(k + 1).padStart(2, "0")}</span><span>{line}</span></div>))}
+      </div>
+      <p style={{ fontSize: 12.5, color: "var(--muted)", margin: 0 }}>{s.intuizione}</p>
     </div>
   );
 }
+function StrategyPicker({ who, onPick }) {
+  return (
+    <div className="slidein" style={{ maxWidth: 720, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 18 }}>
+        <span className="eyebrow" style={{ color: "var(--amber)" }}>Scelta segreta</span>
+        <div style={{ ...serif, fontSize: 24, fontWeight: 600, marginTop: 6 }}>{who}, scegli la strategia che interpreterai</div>
+        <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 6 }}>L'avversario non vedrà la tua scelta. Prova a restarle fedele round dopo round, senza tradirti.</p>
+      </div>
+      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))" }}>
+        {STRATEGIES.map((s) => (
+          <button key={s.id} className="card stratcard" style={{ padding: 14, textAlign: "left" }} onClick={() => onPick(s.id)}>
+            <StratName s={s} />
+            <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "6px 0 0" }}>{s.tagline}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+function computeFidelity(stratId, mine, theirs) {
+  const s = byId[stratId];
+  if (!s || mine.length === 0) return null;
+  const rngStub = () => 0.5;
+  let match = 0;
+  for (let i = 0; i < mine.length; i++) {
+    const predicted = s.play(mine.slice(0, i), theirs.slice(0, i), rngStub, M0);
+    if (predicted === mine[i]) match++;
+  }
+  return Math.round((match / mine.length) * 100);
+}
 
-/* --- STESSO SCHERMO --- */
-function HotSeat({ onExit }) {
+/* --- CRONOLOGIA PARTITE (memoria locale del browser) --- */
+const LB_KEY = "pd_matches_v1";
+const storageAvailable = (() => {
+  try {
+    const k = "__pd_test__";
+    window.localStorage.setItem(k, "1");
+    window.localStorage.removeItem(k);
+    return true;
+  } catch (e) { return false; }
+})();
+function loadMatches() {
+  try { const raw = window.localStorage.getItem(LB_KEY); return raw ? JSON.parse(raw) : []; }
+  catch (e) { return []; }
+}
+function saveMatch(record) {
+  try {
+    const list = loadMatches();
+    list.unshift(record);
+    window.localStorage.setItem(LB_KEY, JSON.stringify(list.slice(0, 300)));
+    return true;
+  } catch (e) { return false; }
+}
+function clearMatches() {
+  try { window.localStorage.removeItem(LB_KEY); return true; } catch (e) { return false; }
+}
+function fmtDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" }) + " · " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  } catch (e) { return iso; }
+}
+function aggregatePlayers(matches) {
+  const map = {};
+  matches.forEach((m) => {
+    [["a", "b"], ["b", "a"]].forEach(([me]) => {
+      const name = ((me === "a" ? m.names.a : m.names.b) || "").trim();
+      if (!name) return;
+      if (!map[name]) map[name] = { name, played: 0, wins: 0, draws: 0, losses: 0, pf: 0, pa: 0 };
+      const rec = map[name];
+      rec.played++;
+      const myScore = me === "a" ? m.scoreA : m.scoreB;
+      const oppScore = me === "a" ? m.scoreB : m.scoreA;
+      rec.pf += myScore; rec.pa += oppScore;
+      if (m.winner === "draw") rec.draws++;
+      else if (m.winner === me) rec.wins++;
+      else rec.losses++;
+    });
+  });
+  return Object.values(map).sort((x, y) => (y.wins - x.wins) || (y.pf - y.pa) - (x.pf - x.pa));
+}
+
+function HotSeat() {
   const [rounds, setRounds] = useState(10);
   const [names, setNames] = useState({ a: "Giocatore 1", b: "Giocatore 2" });
-  const [phase, setPhase] = useState("setup"); // setup|handoffA|p1|handoffB|p2|reveal|done
+  const [phase, setPhase] = useState("setup"); // setup|pickHandoffA|pickA|pickHandoffB|pickB|handoffA|p1|handoffB|p2|reveal|done
+  const [stratA, setStratA] = useState(null);
+  const [stratB, setStratB] = useState(null);
   const [A, setA] = useState([]);
   const [B, setB] = useState([]);
   const [tempA, setTempA] = useState(null);
@@ -876,18 +958,19 @@ function HotSeat({ onExit }) {
   const pickB = (m) => { setA([...A, tempA]); setB([...B, m]); setTempA(null); setPhase("reveal"); };
   const afterReveal = () => { if (A.length >= rounds) setPhase("done"); else setPhase("handoffA"); };
 
-  const Handoff = ({ who, next }) => (
+  const Handoff = ({ who, sub, cta, next }) => (
     <div className="card slidein" style={{ padding: 40, textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
       <div className="eyebrow" style={{ color: "var(--amber)" }}>Passa il dispositivo</div>
       <div style={{ ...serif, fontSize: 30, fontWeight: 700, margin: "12px 0 6px" }}>{who}</div>
-      <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 22 }}>Tocca solo tu, l'altro non deve guardare lo schermo.</p>
-      <button className="btn primary" onClick={next}>Sono {who}, tocca a me →</button>
+      <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 22 }}>{sub || "Tocca solo tu, l'altro non deve guardare lo schermo."}</p>
+      <button className="btn primary" onClick={next}>{cta || `Sono ${who}, tocca a me →`}</button>
     </div>
   );
-  const Choose = ({ who }) => (
+  const Choose = ({ who, strat }) => (
     <div className="slidein">
       <div style={{ textAlign: "center", marginBottom: 8 }}><span className="eyebrow" style={{ color: "var(--amber)" }}>Round {A.length + 1} / {rounds}</span></div>
       <div style={{ ...serif, fontSize: 24, fontWeight: 600, textAlign: "center", marginBottom: 18 }}>{who}, scegli la tua mossa</div>
+      {strat && <StrategyBox s={byId[strat]} />}
       {A.length > 0 && <div style={{ marginBottom: 18 }}><SharedHistory A={A} B={B} names={names} reveal={A.length} /></div>}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 520, margin: "0 auto" }}>
         <ChoiceButton move={C} onClick={() => (who === names.a ? pickA(C) : pickB(C))} hints={["3 se coopera", "0 se tradisce"]} />
@@ -898,25 +981,30 @@ function HotSeat({ onExit }) {
 
   return (
     <div>
-      <SectionHead eyebrow="Due giocatori · stesso schermo" title="Passa e gioca" sub="Un solo dispositivo. A ogni round ciascuno sceglie di nascosto, poi si passa lo schermo e si scopre l'esito." />
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}><button className="btn" onClick={onExit}>← Cambia modalità</button></div>
+      <SectionHead eyebrow="Gioca · due giocatori, stesso schermo" title="Passa e gioca" sub="Un solo dispositivo. Ognuno sceglie in segreto una strategia da interpretare, poi a ogni round decide la mossa restandole fedele (o tradendola)." />
 
       {phase === "setup" && (
         <div className="card slidein" style={{ padding: 28, maxWidth: 520, margin: "0 auto" }}>
           <div className="eyebrow" style={{ marginBottom: 14 }}>Preparazione</div>
           <label style={{ ...mono, fontSize: 11, color: "var(--muted)" }}>NOME GIOCATORE 1</label>
-          <input value={names.a} onChange={(e) => setNames({ ...names, a: e.target.value || "Giocatore 1" })} style={{ width: "100%", margin: "6px 0 14px", padding: "9px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--line-strong)", color: "var(--text)", fontFamily: "inherit", fontSize: 14 }} />
+          <input value={names.a} onChange={(e) => setNames({ ...names, a: e.target.value })} style={{ width: "100%", margin: "6px 0 14px", padding: "9px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--line-strong)", color: "var(--text)", fontFamily: "inherit", fontSize: 14 }} />
           <label style={{ ...mono, fontSize: 11, color: "var(--muted)" }}>NOME GIOCATORE 2</label>
-          <input value={names.b} onChange={(e) => setNames({ ...names, b: e.target.value || "Giocatore 2" })} style={{ width: "100%", margin: "6px 0 18px", padding: "9px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--line-strong)", color: "var(--text)", fontFamily: "inherit", fontSize: 14 }} />
+          <input value={names.b} onChange={(e) => setNames({ ...names, b: e.target.value })} style={{ width: "100%", margin: "6px 0 18px", padding: "9px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--line-strong)", color: "var(--text)", fontFamily: "inherit", fontSize: 14 }} />
           <label style={{ ...mono, fontSize: 11, color: "var(--muted)" }}>DURATA DELLA PARTITA</label>
           <div style={{ marginTop: 8, marginBottom: 20 }}><RoundPicker value={rounds} onChange={setRounds} /></div>
-          <button className="btn primary" style={{ width: "100%" }} onClick={() => setPhase("handoffA")}>Inizia la partita →</button>
+          <button className="btn primary" style={{ width: "100%" }} onClick={() => { setNames((n) => ({ a: n.a.trim() || "Giocatore 1", b: n.b.trim() || "Giocatore 2" })); setPhase("pickHandoffA"); }}>Inizia la partita →</button>
         </div>
       )}
+
+      {phase === "pickHandoffA" && <Handoff who={names.a} sub="Tocca solo tu: sceglierai una strategia segreta che l'altro giocatore non vedrà." cta={`Sono ${names.a}, scelgo la mia strategia →`} next={() => setPhase("pickA")} />}
+      {phase === "pickA" && <StrategyPicker who={names.a} onPick={(id) => { setStratA(id); setPhase("pickHandoffB"); }} />}
+      {phase === "pickHandoffB" && <Handoff who={names.b} sub="Tocca solo tu: sceglierai una strategia segreta che l'altro giocatore non vedrà." cta={`Sono ${names.b}, scelgo la mia strategia →`} next={() => setPhase("pickB")} />}
+      {phase === "pickB" && <StrategyPicker who={names.b} onPick={(id) => { setStratB(id); setPhase("handoffA"); }} />}
+
       {phase === "handoffA" && <Handoff who={names.a} next={() => setPhase("p1")} />}
-      {phase === "p1" && <Choose who={names.a} />}
+      {phase === "p1" && <Choose who={names.a} strat={stratA} />}
       {phase === "handoffB" && <Handoff who={names.b} next={() => setPhase("p2")} />}
-      {phase === "p2" && <Choose who={names.b} />}
+      {phase === "p2" && <Choose who={names.b} strat={stratB} />}
       {phase === "reveal" && (
         <div className="card slidein" style={{ padding: 28, maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
           <div className="eyebrow" style={{ color: "var(--amber)" }}>Round {A.length} · esito</div>
@@ -934,7 +1022,7 @@ function HotSeat({ onExit }) {
           <button className="btn primary" onClick={afterReveal}>{A.length >= rounds ? "Risultato finale →" : "Prossimo round →"}</button>
         </div>
       )}
-      {phase === "done" && <DuoResult scoreA={scoreA} scoreB={scoreB} A={A} B={B} names={names} onRestart={() => { setA([]); setB([]); setTempA(null); setPhase("setup"); }} />}
+      {phase === "done" && <DuoResult scoreA={scoreA} scoreB={scoreB} A={A} B={B} names={names} stratA={stratA} stratB={stratB} onRestart={() => { setA([]); setB([]); setTempA(null); setStratA(null); setStratB(null); setPhase("setup"); }} />}
     </div>
   );
 }
@@ -948,11 +1036,42 @@ function SharedHistory({ A, B, names, reveal }) {
     </div>
   );
 }
-function DuoResult({ scoreA, scoreB, A, B, names, onRestart }) {
+function FidelityLine({ label, stratId, fid }) {
+  const s = byId[stratId];
+  const noisy = stratId === "random" || stratId === "gtft";
+  return (
+    <div style={{ textAlign: "left", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+      <div style={{ ...mono, fontSize: 10, color: "var(--muted)", marginBottom: 3 }}>{label}</div>
+      <StratName s={s} />
+      {fid != null && (
+        <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 4 }}>
+          Fedeltà alla strategia: <strong style={{ color: "var(--amber)" }}>{fid}%</strong> dei round
+          {noisy && <span> · questa strategia ha una componente casuale, il numero è indicativo</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+function DuoResult({ scoreA, scoreB, A, B, names, stratA, stratB, onRestart }) {
   const aWin = scoreA > scoreB, draw = scoreA === scoreB;
   const winner = draw ? "Pareggio" : aWin ? names.a : names.b;
   const col = draw ? "var(--amber)" : aWin ? "var(--coop)" : "var(--defect)";
   const cc = A.filter((m, i) => m === C && B[i] === C).length;
+  const fidA = computeFidelity(stratA, A, B);
+  const fidB = computeFidelity(stratB, B, A);
+
+  useEffect(() => {
+    saveMatch({
+      id: Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+      date: new Date().toISOString(),
+      names: { a: names.a, b: names.b },
+      scoreA, scoreB, rounds: A.length,
+      stratA, stratB, fidA, fidB,
+      winner: aWin ? "a" : draw ? "draw" : "b",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="card slidein" style={{ padding: 30, maxWidth: 560, margin: "0 auto", textAlign: "center", border: `1px solid ${col}` }}>
       <div className="eyebrow" style={{ color: "var(--amber)" }}>Fine partita</div>
@@ -965,180 +1084,136 @@ function DuoResult({ scoreA, scoreB, A, B, names, onRestart }) {
         Avete cooperato insieme in {cc} round su {A.length}. {cc >= A.length * 0.6 ? "Avete privilegiato la fiducia reciproca." : cc <= A.length * 0.3 ? "È stata una partita di diffidenza e tradimenti." : "Una partita in equilibrio tra fiducia e opportunismo."}
       </p>
       <div style={{ marginBottom: 20 }}><SharedHistory A={A} B={B} names={names} reveal={A.length} /></div>
+
+      {(stratA || stratB) && (
+        <div style={{ background: "var(--surface2)", borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
+          <div className="eyebrow" style={{ color: "var(--amber)", marginBottom: 6 }}>Rivelazione delle strategie segrete</div>
+          {stratA && <FidelityLine label={names.a} stratId={stratA} fid={fidA} />}
+          {stratB && <FidelityLine label={names.b} stratId={stratB} fid={fidB} />}
+        </div>
+      )}
+
       <button className="btn primary" onClick={onRestart}>↺ Nuova partita</button>
     </div>
   );
 }
 
-/* --- DUE DISPOSITIVI (ONLINE) --- */
-function Online({ onExit }) {
-  const [screen, setScreen] = useState("menu"); // menu|create|join|play
-  const [rounds, setRounds] = useState(10);
-  const [code, setCode] = useState("");
-  const [role, setRole] = useState(null);
-  const [joinInput, setJoinInput] = useState("");
-  const [rnds, setRnds] = useState(10);
-  const [myMoves, setMyMoves] = useState([]);
-  const [oppMoves, setOppMoves] = useState([]);
-  const [oppRaw, setOppRaw] = useState(null);
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
-  const pollRef = useRef(null);
 
-  const ka = (cd) => `pd_${cd}_a`;
-  const kb = (cd) => `pd_${cd}_b`;
-  const kc = (cd) => `pd_${cd}_cfg`;
-  const myKey = () => (role === "A" ? ka(code) : kb(code));
-  const oppKey = () => (role === "A" ? kb(code) : ka(code));
+function TwoPlayer() {
+  return <HotSeat />;
+}
 
-  async function pollOnce() { const o = await sget(oppKey()); setOppRaw(o); setOppMoves(o || []); }
-  useEffect(() => {
-    if (screen !== "play") return;
-    pollOnce();
-    pollRef.current = setInterval(pollOnce, 2200);
-    return () => clearInterval(pollRef.current);
-  }, [screen, role, code]); // eslint-disable-line
-
-  async function create() {
-    if (!hasStorage) { setErr("Memoria condivisa non disponibile qui: usa la modalità Stesso schermo."); return; }
-    setBusy(true);
-    const cd = makeCode();
-    await sset(kc(cd), { rounds });
-    await sset(ka(cd), []);
-    setCode(cd); setRole("A"); setRnds(rounds); setMyMoves([]); setOppMoves([]); setOppRaw(null);
-    setBusy(false); setScreen("play");
-  }
-  async function join() {
-    if (!hasStorage) { setErr("Memoria condivisa non disponibile qui: usa la modalità Stesso schermo."); return; }
-    const cd = joinInput.trim().toUpperCase();
-    if (cd.length < 4) { setErr("Inserisci il codice a 4 caratteri."); return; }
-    setBusy(true);
-    const c = await sget(kc(cd));
-    if (!c) { setErr("Codice non trovato. Controlla e riprova."); setBusy(false); return; }
-    await sset(kb(cd), []);
-    setCode(cd); setRole("B"); setRnds(c.rounds); setMyMoves([]); setOppMoves([]); setOppRaw([]);
-    setBusy(false); setScreen("play");
-  }
-  async function commit(move) { const nm = [...myMoves, move]; setMyMoves(nm); await sset(myKey(), nm); pollOnce(); }
-
-  const revealed = Math.min(myMoves.length, oppMoves.length);
-  const current = revealed;
-  const done = revealed >= rnds;
-  const guestJoined = role === "A" ? oppRaw !== null : true;
-  const oppReady = oppMoves.length > current;
-  const iCommitted = myMoves.length > current;
-  const canCommit = !done && guestJoined && myMoves.length === current;
-  const { me: myScore, opp: oppScore } = scorePairLen(myMoves.slice(0, revealed), oppMoves.slice(0, revealed), revealed);
-
-  const inputStyle = { width: "100%", padding: "12px 14px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--line-strong)", color: "var(--text)", fontFamily: "'Space Mono',monospace", fontSize: 20, letterSpacing: ".3em", textAlign: "center", textTransform: "uppercase" };
-
+/* ============================================================
+   CLASSIFICA — cronologia partite (memoria locale del browser)
+   ============================================================ */
+function PlayerMatchCol({ name, score, stratId, fid, align }) {
+  const s = byId[stratId];
   return (
-    <div>
-      <SectionHead eyebrow="Due giocatori · due dispositivi" title="Sfida a distanza" sub="Uno crea la partita e condivide il codice, l'altro entra. Ognuno sceglie sul proprio schermo, senza vedere la mossa dell'altro finché non ha scelto." />
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}><button className="btn" onClick={onExit}>← Cambia modalità</button></div>
-
-      {screen === "menu" && (
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", maxWidth: 720, margin: "0 auto" }}>
-          <div className="card" style={{ padding: 24 }}>
-            <div style={{ ...serif, fontSize: 22, fontWeight: 600, marginBottom: 6 }}>Crea una partita</div>
-            <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 16 }}>Scegli la durata, ottieni un codice e invitalo all'altro giocatore.</p>
-            <label style={{ ...mono, fontSize: 11, color: "var(--muted)" }}>DURATA</label>
-            <div style={{ margin: "8px 0 18px" }}><RoundPicker value={rounds} onChange={setRounds} /></div>
-            <button className="btn primary" style={{ width: "100%" }} disabled={busy} onClick={create}>Crea e ottieni il codice →</button>
-          </div>
-          <div className="card" style={{ padding: 24 }}>
-            <div style={{ ...serif, fontSize: 22, fontWeight: 600, marginBottom: 6 }}>Entra con un codice</div>
-            <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 16 }}>Hai ricevuto un codice? Inseriscilo per unirti alla partita.</p>
-            <input value={joinInput} onChange={(e) => { setJoinInput(e.target.value); setErr(""); }} placeholder="ABCD" maxLength={4} style={inputStyle} />
-            <button className="btn primary" style={{ width: "100%", marginTop: 14 }} disabled={busy} onClick={join}>Entra →</button>
-          </div>
-          {!hasStorage && <div style={{ gridColumn: "1 / -1", ...mono, fontSize: 12, color: "var(--defect)" }}>Nota: la sincronizzazione tra dispositivi non è disponibile in questo contesto. La modalità "Stesso schermo" funziona sempre.</div>}
-          {err && <div style={{ gridColumn: "1 / -1", ...mono, fontSize: 13, color: "var(--defect)" }}>{err}</div>}
-        </div>
-      )}
-
-      {screen === "play" && !guestJoined && (
-        <div className="card slidein" style={{ padding: 32, maxWidth: 460, margin: "0 auto", textAlign: "center" }}>
-          <div className="eyebrow" style={{ color: "var(--amber)" }}>Condividi questo codice</div>
-          <div style={{ ...mono, fontSize: 52, fontWeight: 700, letterSpacing: ".2em", margin: "14px 0", color: "var(--amber)" }}>{code}</div>
-          <p style={{ color: "var(--muted)", fontSize: 14 }}>Partita da {rnds} round. In attesa che l'altro giocatore entri con il codice…</p>
-          <div style={{ ...mono, fontSize: 12, color: "var(--muted)", marginTop: 16 }}>● sincronizzazione attiva</div>
-        </div>
-      )}
-
-      {screen === "play" && guestJoined && (
-        <div className="card slidein" style={{ padding: "clamp(18px,3vw,28px)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 8 }}>
-            <span style={{ ...mono, fontSize: 12, color: "var(--muted)" }}>PARTITA <span style={{ color: "var(--amber)", fontWeight: 700 }}>{code}</span> · sei il Giocatore {role}</span>
-            <span style={{ ...mono, fontSize: 12, color: "var(--muted)" }}>round {Math.min(revealed + (done ? 0 : 1), rnds)} / {rnds}</span>
-          </div>
-
-          <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
-            <ScoreDuo label="TU" score={myScore} color="var(--coop)" side="me" />
-            <ScoreDuo label="AVVERSARIO" score={oppScore} color="var(--defect)" side="opp" />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "6px 12px", alignItems: "center", marginBottom: 18 }}>
-            <span style={{ ...mono, fontSize: 11, color: "var(--coop)", textAlign: "right" }}>Tu</span>
-            <MoveTrack moves={myMoves} total={rnds} reveal={myMoves.length} mine />
-            <span style={{ ...mono, fontSize: 11, color: "var(--defect)", textAlign: "right" }}>Avv.</span>
-            <MoveTrack moves={oppMoves} total={rnds} reveal={revealed} />
-          </div>
-
-          {revealed > 0 && (
-            <div style={{ textAlign: "center", fontSize: 14, color: "var(--muted)", marginBottom: 16 }}>
-              <span style={{ ...mono, fontSize: 11 }}>ULTIMO ROUND SVELATO · </span>
-              <OutcomeLine mine={myMoves[revealed - 1]} theirs={oppMoves[revealed - 1]} meLabel="Tu" themLabel="l'avversario" />
-            </div>
-          )}
-
-          {done ? (
-            <div style={{ textAlign: "center", border: `1px solid ${myScore > oppScore ? "var(--coop)" : myScore === oppScore ? "var(--amber)" : "var(--defect)"}`, borderRadius: 14, padding: 22, maxWidth: 480, margin: "0 auto" }}>
-              <div style={{ ...serif, fontSize: 26, fontWeight: 700, color: myScore > oppScore ? "var(--coop)" : myScore === oppScore ? "var(--amber)" : "var(--defect)" }}>
-                {myScore > oppScore ? "Hai vinto!" : myScore === oppScore ? "Pareggio" : "Hai perso"}
-              </div>
-              <div style={{ ...mono, fontSize: 15, margin: "8px 0 14px" }}>{myScore} <span style={{ color: "var(--muted)" }}>vs</span> {oppScore}</div>
-              <button className="btn" onClick={onExit}>← Torna al menu</button>
-            </div>
-          ) : canCommit ? (
-            <div style={{ maxWidth: 520, margin: "0 auto" }}>
-              {oppReady && <div style={{ textAlign: "center", ...mono, fontSize: 12, color: "var(--amber)", marginBottom: 12 }}>L'avversario ha già scelto. Tocca a te — la sua mossa resta nascosta.</div>}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                <ChoiceButton move={C} onClick={() => commit(C)} hints={["3 se coopera", "0 se tradisce"]} />
-                <ChoiceButton move={D} onClick={() => commit(D)} hints={["5 se coopera", "1 se tradisce"]} />
-              </div>
-            </div>
-          ) : iCommitted ? (
-            <div style={{ textAlign: "center", padding: 20 }}>
-              <div style={{ ...serif, fontSize: 20, fontWeight: 600, marginBottom: 6 }}>Mossa inviata</div>
-              <p style={{ color: "var(--muted)", fontSize: 14 }}>In attesa che l'altro giocatore scelga…</p>
-              <div style={{ ...mono, fontSize: 12, color: "var(--muted)", marginTop: 10 }}>● sincronizzazione attiva</div>
-            </div>
-          ) : null}
+    <div style={{ textAlign: align }}>
+      <div style={{ fontSize: 13, fontWeight: 600 }}>{name}</div>
+      <div style={{ ...serif, fontSize: 24, fontWeight: 700, color: "var(--amber)" }}>{score}</div>
+      {s && (
+        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>
+          {s.en} <span style={{ fontStyle: "italic" }}>({s.it})</span>{fid != null ? ` · fedeltà ${fid}%` : ""}
         </div>
       )}
     </div>
   );
 }
+function Leaderboard() {
+  const [matches, setMatches] = useState(() => loadMatches());
+  const [confirmClear, setConfirmClear] = useState(false);
+  const players = useMemo(() => aggregatePlayers(matches), [matches]);
 
-function TwoPlayer() {
-  const [mode, setMode] = useState(null);
-  if (mode === "hotseat") return <HotSeat onExit={() => setMode(null)} />;
-  if (mode === "online") return <Online onExit={() => setMode(null)} />;
+  function handleClear() {
+    clearMatches();
+    setMatches([]);
+    setConfirmClear(false);
+  }
+
+  if (!storageAvailable) {
+    return (
+      <div>
+        <SectionHead eyebrow="Classifica" title="Cronologia non disponibile" sub="Questo browser non consente l'uso della memoria locale (modalità privata o impostazioni di sistema)." />
+        <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--muted)", fontSize: 14 }}>
+          Puoi comunque giocare normalmente in "Gioca": i risultati non verranno salvati in questa sessione.
+        </div>
+      </div>
+    );
+  }
+
+  if (matches.length === 0) {
+    return (
+      <div>
+        <SectionHead eyebrow="Classifica" title="Nessuna partita ancora" sub="Gioca una partita in Gioca per iniziare a costruire la cronologia su questo dispositivo." />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <SectionHead eyebrow="Due giocatori" title="Sfidatevi davvero" sub="Uno contro uno tra persone: a ogni round ciascuno decide se cooperare o tradire, senza sapere cosa sceglie l'altro finché non ha scelto anche lui." />
-      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", maxWidth: 760, margin: "0 auto" }}>
-        <button className="card stratcard" style={{ padding: 26 }} onClick={() => setMode("hotseat")}>
-          <div className="eyebrow" style={{ color: "var(--amber)" }}>Stesso schermo</div>
-          <div style={{ ...serif, fontSize: 24, fontWeight: 600, margin: "8px 0 8px" }}>Passa e gioca</div>
-          <p style={{ color: "var(--muted)", fontSize: 14 }}>Un solo dispositivo. Ci si passa lo schermo a turno, con una schermata che nasconde la scelta appena fatta. Funziona sempre, anche senza rete.</p>
-        </button>
-        <button className="card stratcard" style={{ padding: 26 }} onClick={() => setMode("online")}>
-          <div className="eyebrow" style={{ color: "var(--amber)" }}>Due dispositivi</div>
-          <div style={{ ...serif, fontSize: 24, fontWeight: 600, margin: "8px 0 8px" }}>Sfida a distanza</div>
-          <p style={{ color: "var(--muted)", fontSize: 14 }}>Due computer diversi. Uno crea la partita e condivide un codice, l'altro entra. Ognuno sceglie sul proprio schermo, in contemporanea e alla cieca.</p>
-        </button>
+      <SectionHead eyebrow="Classifica" title="Partite giocate" sub="Cronologia delle sfide a due giocatori su questo dispositivo, con le strategie segrete usate da ciascuno e quanto vi sono rimasti fedeli." />
+
+      <div className="card" style={{ padding: 20, marginBottom: 20, overflowX: "auto" }}>
+        <div className="eyebrow" style={{ marginBottom: 14 }}>Classifica giocatori</div>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 480 }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--line-strong)" }}>
+              {["#", "Giocatore", "Partite", "V", "P", "S", "Punti fatti", "Punti subiti"].map((h) => (
+                <th key={h} style={{ ...mono, textAlign: h === "Giocatore" ? "left" : "center", padding: "6px 8px", color: "var(--muted)", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {players.map((p, i) => (
+              <tr key={p.name} style={{ borderBottom: "1px solid var(--line)" }}>
+                <td style={{ ...mono, padding: "8px", textAlign: "center", color: i === 0 ? "var(--amber)" : "var(--muted)" }}>{i + 1}</td>
+                <td style={{ padding: "8px", fontWeight: i === 0 ? 600 : 400 }}>{p.name}</td>
+                <td style={{ ...mono, padding: "8px", textAlign: "center" }}>{p.played}</td>
+                <td style={{ ...mono, padding: "8px", textAlign: "center", color: "var(--coop)" }}>{p.wins}</td>
+                <td style={{ ...mono, padding: "8px", textAlign: "center", color: "var(--amber)" }}>{p.draws}</td>
+                <td style={{ ...mono, padding: "8px", textAlign: "center", color: "var(--defect)" }}>{p.losses}</td>
+                <td style={{ ...mono, padding: "8px", textAlign: "center" }}>{p.pf}</td>
+                <td style={{ ...mono, padding: "8px", textAlign: "center" }}>{p.pa}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 10 }}>Il conteggio si basa sul nome esattamente digitato a ogni partita.</p>
+      </div>
+
+      <div className="card" style={{ padding: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+          <div className="eyebrow">Cronologia partite</div>
+          {!confirmClear ? (
+            <button className="btn" onClick={() => setConfirmClear(true)}>Cancella cronologia</button>
+          ) : (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>Sicuro? Non si può annullare.</span>
+              <button className="btn" onClick={() => setConfirmClear(false)}>Annulla</button>
+              <button className="btn primary" onClick={handleClear}>Conferma</button>
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {matches.map((m) => {
+            const winnerName = m.winner === "draw" ? null : m.winner === "a" ? m.names.a : m.names.b;
+            const col = m.winner === "draw" ? "var(--amber)" : "var(--coop)";
+            return (
+              <div key={m.id} className="card" style={{ padding: 14, background: "var(--surface2)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                  <span style={{ ...mono, fontSize: 11, color: "var(--muted)" }}>{fmtDate(m.date)} · {m.rounds} round</span>
+                  <span style={{ ...serif, fontSize: 15, fontWeight: 600, color: col }}>{m.winner === "draw" ? "Pareggio" : `Vince ${winnerName}`}</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center" }}>
+                  <PlayerMatchCol name={m.names.a} score={m.scoreA} stratId={m.stratA} fid={m.fidA} align="left" />
+                  <span style={{ ...serif, color: "var(--muted)", fontSize: 16 }}>vs</span>
+                  <PlayerMatchCol name={m.names.b} score={m.scoreB} stratId={m.stratB} fid={m.fidB} align="right" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -1149,7 +1224,7 @@ function TwoPlayer() {
    ============================================================ */
 export default function App() {
   const [tab, setTab] = useState("intro");
-  const tabs = [["intro", "Il dilemma"], ["arena", "L'Arena"], ["duo", "Due giocatori"], ["strategie", "Le strategie"], ["torneo", "Il torneo"], ["duello", "Il duello"]];
+  const tabs = [["intro", "Il dilemma"], ["strategie", "Le strategie"], ["duo", "Gioca"], ["classifica", "Classifica"], ["torneo", "Il torneo"], ["duello", "Il duello"], ["arena", "Solitario"]];
   return (
     <div className="ipd" style={{ ...ROOT_VARS, minHeight: "100vh" }}>
       <style>{`@import url('${FONT_LINK}');`}</style>
@@ -1164,16 +1239,17 @@ export default function App() {
             Cooperare o <span style={{ color: "var(--defect)", fontStyle: "italic" }}>tradire?</span>
           </h1>
           <p style={{ color: "var(--muted)", fontSize: 17, maxWidth: 560, marginTop: 14 }}>
-            Un gioco sul dilemma del prigioniero. Impara le regole, sfida le strategie nell'Arena e scopri perché, alla lunga, la fiducia batte l'astuzia.
+            Un gioco sul dilemma del prigioniero. Impara le regole, sfida le strategie in Solitario e scopri perché, alla lunga, la fiducia batte l'astuzia.
           </p>
           <nav style={{ display: "flex", gap: 8, marginTop: 26, flexWrap: "wrap", borderBottom: "1px solid var(--line)", paddingBottom: 20 }}>
             {tabs.map(([id, label]) => (<button key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => setTab(id)}>{label}</button>))}
           </nav>
         </header>
         <main>
-          {tab === "intro" && <Intro onDone={() => setTab("arena")} />}
+          {tab === "intro" && <Intro onDone={() => setTab("strategie")} />}
           {tab === "arena" && <Arena />}
           {tab === "duo" && <TwoPlayer />}
+          {tab === "classifica" && <Leaderboard />}
           {tab === "strategie" && <StrategyGallery />}
           {tab === "torneo" && <Tournament />}
           {tab === "duello" && <Duel />}
