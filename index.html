@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cooperare o tradire? · Un gioco sul dilemma del prigioniero</title>
+<meta name="description" content="Un laboratorio interattivo sul dilemma del prigioniero iterato: slide didattiche, dodici strategie di teoria dei giochi, un'Arena giocabile e una modalità a due giocatori." />
+<link rel="icon" href="data:,">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --bg:#14161b; --surface:#1b1e26; --surface2:#232733;
+    --line:rgba(236,231,219,0.10); --line-strong:rgba(236,231,219,0.18);
+    --text:#ECE7DB; --muted:#8f897c;
+    --coop:#38C39A; --coop-dim:rgba(56,195,154,0.16);
+    --defect:#F26B4E; --defect-dim:rgba(242,107,78,0.16);
+    --amber:#EBB552; --amber-dim:rgba(235,181,82,0.14);
+  }
+  * { box-sizing:border-box; }
+  html,body{ margin:0; background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  ::selection{ background:var(--amber-dim); }
+  a{ color:inherit; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:clamp(28px,6vw,64px) clamp(18px,5vw,32px) 80px; }
+
+  .eyebrow{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
+
+  header{ margin-bottom:40px; }
+  .dots{ display:flex; gap:6px; margin-bottom:16px; }
+  .dot{ width:16px; height:16px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-family:'Space Mono',monospace; font-size:7px; font-weight:700; }
+  .dot.c{ background:var(--coop-dim); color:var(--coop); border:1px solid var(--coop); }
+  .dot.d{ background:var(--defect-dim); color:var(--defect); border:1px solid var(--defect); }
+
+  h1{ font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:clamp(36px,7vw,64px); line-height:0.98; margin:0 0 16px; letter-spacing:-0.01em; }
+  h1 em{ color:var(--defect); font-style:italic; }
+  .lead{ color:var(--muted); font-size:17px; max-width:600px; line-height:1.6; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:16px; }
+
+  .cta{ display:block; padding:26px 28px; margin:32px 0; border-radius:16px; text-decoration:none; background:var(--amber); color:#201a0a; transition:transform .15s, background .15s; }
+  .cta:hover{ transform:translateY(-2px); background:#f2c264; }
+  .cta .k{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; }
+  .cta .t{ font-family:'Fraunces',Georgia,serif; font-size:28px; font-weight:700; margin:6px 0 4px; }
+  .cta .s{ font-size:14px; opacity:.85; }
+  .cta .arrow{ float:right; font-size:26px; }
+
+  .grid{ display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin:36px 0; }
+  .feat{ padding:18px 20px; }
+  .feat .ft{ font-family:'Fraunces',Georgia,serif; font-size:17px; font-weight:600; margin-bottom:6px; }
+  .feat .fs{ color:var(--muted); font-size:13.5px; line-height:1.5; }
+
+  .matrix{ display:grid; grid-template-columns:auto 1fr 1fr; gap:8px; align-items:center; max-width:420px; margin:28px 0; }
+  .mh{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; text-align:center; padding:4px 0; }
+  .mh.c{ color:var(--coop); } .mh.d{ color:var(--defect); }
+  .mv{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; writing-mode:vertical-rl; transform:rotate(180deg); justify-self:center; }
+  .mv.c{ color:var(--coop); } .mv.d{ color:var(--defect); }
+  .mcell{ padding:14px 10px; text-align:center; border-radius:10px; background:var(--surface2); border:1px solid var(--line); font-family:'Space Mono',monospace; font-size:18px; font-weight:700; }
+  .mcell b.c{ color:var(--coop); } .mcell b.d{ color:var(--defect); }
+
+  footer{ margin-top:56px; padding-top:20px; border-top:1px solid var(--line); font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="dots"><span class="dot c">C</span><span class="dot d">T</span></div>
+    <span class="eyebrow">Teoria dei giochi · dilemma iterato</span>
+    <h1>Cooperare o <em>tradire?</em></h1>
+    <p class="lead">
+      Un laboratorio interattivo sul dilemma del prigioniero: capisci le regole in cinque slide,
+      studia dodici strategie di teoria dei giochi, sfidale una a una nell'Arena e gioca dal vivo
+      contro un amico, sullo stesso schermo o su due dispositivi diversi.
+    </p>
+  </header>
+
+  <a class="cta" href="dilemma.html">
+    <span class="arrow">→</span>
+    <div class="k">Entra nel gioco</div>
+    <div class="t">Apri il dilemma del prigioniero</div>
+    <div class="s">Slide didattiche · Arena giocabile · Torneo dal vivo · Due giocatori</div>
+  </a>
+
+  <div class="grid">
+    <div class="card feat">
+      <div class="ft">Il dilemma</div>
+      <div class="fs">Cinque slide che spiegano la storia, la matrice dei guadagni e la ricetta di Axelrod, senza bisogno di sapere nulla in anticipo.</div>
+    </div>
+    <div class="card feat">
+      <div class="ft">L'Arena</div>
+      <div class="fs">Scegli tu, round dopo round, se cooperare o tradire, e scala dieci avversari automatici, dal più ingenuo al più scaltro.</div>
+    </div>
+    <div class="card feat">
+      <div class="ft">Due giocatori</div>
+      <div class="fs">Sfidatevi davvero: passa e gioca sullo stesso schermo, oppure una partita a distanza tra due dispositivi con un codice.</div>
+    </div>
+    <div class="card feat">
+      <div class="ft">Il torneo</div>
+      <div class="fs">Tutte le strategie l'una contro l'altra. Sposta i valori della matrice e guarda la classifica riscriversi in tempo reale.</div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:24px 28px;">
+    <span class="eyebrow" style="color:var(--amber)">La matrice del gioco</span>
+    <div class="matrix">
+      <div></div>
+      <div class="mh c">L'altro coopera</div>
+      <div class="mh d">L'altro tradisce</div>
+      <div class="mv c">Tu cooperi</div>
+      <div class="mcell"><b class="c">3</b> / <b class="d">3</b></div>
+      <div class="mcell"><b class="c">0</b> / <b class="d">5</b></div>
+      <div class="mv d">Tu tradisci</div>
+      <div class="mcell"><b class="c">5</b> / <b class="d">0</b></div>
+      <div class="mcell"><b class="c">1</b> / <b class="d">1</b></div>
+    </div>
+    <p style="color:var(--muted); font-size:14px; margin:0;">
+      Tradire conviene sempre, individualmente. Ma se lo fanno entrambi, finiscono peggio che se
+      avessero cooperato: è il cuore del paradosso che il gioco fa esplorare.
+    </p>
+  </div>
+
+  <footer>
+    <span>Ispirato al torneo di R. Axelrod (1980) e al minigioco di Universal Paperclips.</span>
+    <span>@mariomele.ai</span>
+  </footer>
+
+</div>
+</body>
+</html>
