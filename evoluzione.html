@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Come cambia la vita</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#F3EFDF;
+    --bg-panel:#FBF9F1;
+    --bg-panel-2:#E9E2C9;
+    --accent-amber:#B87F2E;
+    --accent-coral:#B14E3D;
+    --text-cream:#22301F;
+    --text-muted:#5B6650;
+    --line: rgba(34,48,31,0.14);
+    --moth-light:#DCCBA0;
+    --moth-dark:#3B2A1E;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg-deep);
+    color:var(--text-cream);
+    font-family:'Inter',sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent-amber);
+    display:block;
+    margin-bottom:14px;
+  }
+  section{
+    padding:88px 24px;
+    max-width:980px;
+    margin:0 auto;
+    position:relative;
+  }
+  p{color:var(--text-muted); max-width:640px;}
+  .lead{font-size:1.08rem; color:var(--text-cream); max-width:620px;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height:92vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    max-width:1100px;
+    padding-top:60px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-tree{
+    position:absolute;
+    right:-6%;
+    top:0;
+    height:100%;
+    width:60%;
+    opacity:0.5;
+    pointer-events:none;
+  }
+  .hero h1{
+    font-size:clamp(2.4rem, 6vw, 4.6rem);
+    line-height:1.04;
+    max-width:11.5ch;
+    position:relative;
+    z-index:2;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--accent-amber);
+  }
+  .hero p.lead{
+    margin-top:26px;
+    font-size:1.15rem;
+    position:relative;
+    z-index:2;
+  }
+  .scroll-hint{
+    margin-top:56px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.75rem;
+    color:var(--text-muted);
+    letter-spacing:0.08em;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .scroll-hint::before{
+    content:"";
+    width:22px;height:1px;
+    background:var(--text-muted);
+    display:inline-block;
+  }
+
+  /* ---------- CYCLE ---------- */
+  .cycle-wrap{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap:40px;
+    align-items:center;
+  }
+  @media(max-width:780px){ .cycle-wrap{grid-template-columns:1fr;} }
+  .cycle-steps{display:flex; flex-direction:column; gap:0;}
+  .step{
+    padding:20px 0;
+    border-top:1px solid var(--line);
+    cursor:default;
+    transition:opacity .25s ease;
+  }
+  .step:last-child{border-bottom:1px solid var(--line);}
+  .step h3{font-size:1.2rem; color:var(--text-cream); margin-bottom:6px; font-weight:500;}
+  .step p{margin:0; font-size:0.94rem; max-width:100%;}
+  .step.dim{opacity:0.35;}
+  .step .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    color:var(--accent-coral);
+    letter-spacing:0.1em;
+  }
+  #cycleSvg{width:100%; height:auto;}
+  .cyc-arc{fill:none; stroke:var(--line); stroke-width:1.4;}
+  .cyc-arc.active{stroke:var(--accent-amber); stroke-width:2.2;}
+  .cyc-dot{fill:var(--bg-panel-2); stroke:var(--line); stroke-width:1.2;}
+  .cyc-dot.active{fill:var(--accent-amber); stroke:var(--accent-amber);}
+  .cyc-label{font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--text-muted);}
+
+  /* ---------- SIMULATOR ---------- */
+  .sim-panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:32px;
+    margin-top:36px;
+  }
+  .sim-top{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:20px;
+  }
+  .env-toggle{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .env-toggle button{
+    background:transparent;
+    border:none;
+    color:var(--text-muted);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.72rem;
+    padding:9px 16px;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .env-toggle button.active{
+    background:var(--accent-amber);
+    color:#1B1305;
+  }
+  .stat-row{
+    display:flex;
+    gap:26px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.72rem;
+    color:var(--text-muted);
+  }
+  .stat-row b{color:var(--text-cream); font-size:0.95rem; display:block; font-family:'Fraunces',serif; font-weight:600;}
+  .sim-stage{
+    position:relative;
+    border-radius:4px;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  #barkCanvas{display:block; width:100%; height:auto;}
+  .sim-controls{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+    font-size:0.88rem;
+    padding:12px 22px;
+    border-radius:5px;
+    border:1px solid var(--accent-amber);
+    background:var(--accent-amber);
+    color:#1B1305;
+    cursor:pointer;
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--text-cream);
+    border-color:var(--line);
+  }
+  .btn:focus-visible{outline:2px solid var(--text-cream); outline-offset:2px;}
+  #chartWrap{margin-top:22px;}
+  #chartSvg{width:100%; height:110px; display:block;}
+  .chart-caption{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    color:var(--text-muted);
+    margin-top:6px;
+  }
+  .sim-note{
+    font-size:0.85rem;
+    margin-top:18px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+
+  /* ---------- EXAMPLES ---------- */
+  .examples-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin-top:36px;
+    border-radius:6px;
+    overflow:hidden;
+  }
+  @media(max-width:700px){ .examples-grid{grid-template-columns:1fr;} }
+  .ex-card{
+    background:var(--bg-panel);
+    padding:30px;
+  }
+  .ex-icon{width:46px; height:46px; margin-bottom:16px;}
+  .ex-card h3{font-size:1.15rem; font-weight:500; margin-bottom:8px;}
+  .ex-card p{font-size:0.9rem; margin:0;}
+
+  /* ---------- DEEP TIME ---------- */
+  .time-bar{
+    position:relative;
+    height:64px;
+    background:linear-gradient(90deg, var(--bg-panel), var(--bg-panel-2));
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin-top:44px;
+  }
+  .time-marker{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:1px;
+    background:var(--line);
+  }
+  .time-dot{
+    position:absolute;
+    top:50%;
+    width:10px; height:10px;
+    border-radius:50%;
+    background:var(--accent-coral);
+    transform:translate(-50%,-50%);
+    cursor:pointer;
+    border:2px solid var(--bg-deep);
+    transition:transform .15s ease;
+  }
+  .time-dot:hover, .time-dot.active{
+    transform:translate(-50%,-50%) scale(1.4);
+    background:var(--accent-amber);
+  }
+  .time-desc{
+    margin-top:20px;
+    min-height:70px;
+    padding:20px 24px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+  }
+  .time-desc .mya{
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--accent-amber);
+    font-size:0.78rem;
+    display:block;
+    margin-bottom:6px;
+  }
+  .time-desc h3{font-size:1.1rem; font-weight:500;}
+  .time-desc p{margin:6px 0 0; font-size:0.92rem;}
+  .time-hint{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    color:var(--text-muted);
+    margin-top:10px;
+  }
+
+  /* ---------- CLOSING ---------- */
+  .closing{
+    text-align:center;
+    padding-top:60px;
+    padding-bottom:120px;
+  }
+  .closing h2{
+    font-size:clamp(1.6rem,3.4vw,2.4rem);
+    max-width:14ch;
+    margin:0 auto 18px;
+  }
+  .closing .accent-line{
+    width:40px;height:2px;
+    background:var(--accent-coral);
+    margin:0 auto 26px;
+  }
+  footer{
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    color:var(--text-muted);
+    padding-bottom:50px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <svg class="hero-tree" viewBox="0 0 500 700" preserveAspectRatio="xMidYMid meet">
+    <g stroke="#22301F" stroke-opacity="0.35" stroke-width="1.6" fill="none" stroke-linecap="round">
+      <path d="M250 700 L250 480"/>
+      <path d="M250 480 L170 360"/>
+      <path d="M250 480 L330 380"/>
+      <path d="M170 360 L110 260"/>
+      <path d="M170 360 L200 250"/>
+      <path d="M330 380 L390 290"/>
+      <path d="M330 380 L300 260"/>
+      <path d="M110 260 L70 170"/>
+      <path d="M110 260 L140 160"/>
+      <path d="M200 250 L210 140"/>
+      <path d="M390 290 L440 200"/>
+      <path d="M390 290 L370 190"/>
+      <path d="M300 260 L320 150"/>
+    </g>
+    <g fill="#B87F2E">
+      <circle cx="70" cy="170" r="4"/>
+      <circle cx="140" cy="160" r="4"/>
+      <circle cx="210" cy="140" r="4"/>
+      <circle cx="440" cy="200" r="4"/>
+      <circle cx="370" cy="190" r="4"/>
+      <circle cx="320" cy="150" r="4"/>
+    </g>
+  </svg>
+  <span class="eyebrow">Come cambia la vita</span>
+  <h1>Nessun essere vivente <em>sceglie</em><br>di cambiare. È il tempo<br>a scegliere per lui.</h1>
+  <p class="lead">L'evoluzione non è un progetto né una volontà: è il risultato lento e paziente di piccole differenze tra individui, ripetute per milioni di anni, finché ciò che resta è ciò che si adatta meglio al proprio ambiente.</p>
+  <div class="scroll-hint">SCORRI PER CAPIRE COME FUNZIONA</div>
+</section>
+
+<!-- ============ IL MECCANISMO ============ -->
+<section id="meccanismo">
+  <span class="eyebrow">Il meccanismo</span>
+  <h2 style="font-size:clamp(1.6rem,3.4vw,2.2rem); max-width:16ch; margin-bottom:14px;">Quattro ingredienti, ripetuti all'infinito</h2>
+  <p class="lead">Non serve nient'altro: variazione, selezione ed eredità, ripetute lungo un tempo lunghissimo, bastano a spiegare la varietà di tutta la vita sulla Terra.</p>
+
+  <div class="cycle-wrap">
+    <div class="cycle-steps" id="cycleSteps">
+      <div class="step" data-i="0">
+        <span class="tag">01 — VARIAZIONE</span>
+        <h3>Nessun individuo è identico</h3>
+        <p>In ogni popolazione esistono piccole differenze casuali: becchi leggermente più lunghi, pellicce un po' più scure, radici un po' più profonde. Nascono per caso, non per bisogno.</p>
+      </div>
+      <div class="step" data-i="1">
+        <span class="tag">02 — SELEZIONE</span>
+        <h3>L'ambiente non è neutrale</h3>
+        <p>Alcune di quelle differenze aiutano a sopravvivere o a riprodursi meglio in un certo ambiente. Chi le possiede lascia, in media, più figli di chi non le ha.</p>
+      </div>
+      <div class="step" data-i="2">
+        <span class="tag">03 — EREDITÀ</span>
+        <h3>I vantaggi si trasmettono</h3>
+        <p>Se una caratteristica utile è scritta nei geni, viene passata alla generazione successiva. Ciò che funziona si diffonde, ciò che ostacola si diluisce.</p>
+      </div>
+      <div class="step" data-i="3">
+        <span class="tag">04 — TEMPO</span>
+        <h3>Ripetuto per migliaia di generazioni</h3>
+        <p>Una singola generazione cambia pochissimo. Ma ripetendo il ciclo per centinaia, migliaia, milioni di generazioni, piccoli spostamenti diventano trasformazioni profonde.</p>
+      </div>
+    </div>
+    <svg id="cycleSvg" viewBox="0 0 320 320">
+      <circle class="cyc-arc" id="arc0" cx="160" cy="160" r="120" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="0" transform="rotate(-90 160 160)"/>
+      <circle class="cyc-arc" id="arc1" cx="160" cy="160" r="120" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-25" transform="rotate(-90 160 160)"/>
+      <circle class="cyc-arc" id="arc2" cx="160" cy="160" r="120" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-50" transform="rotate(-90 160 160)"/>
+      <circle class="cyc-arc" id="arc3" cx="160" cy="160" r="120" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-75" transform="rotate(-90 160 160)"/>
+      <circle class="cyc-dot" id="dot0" cx="160" cy="40" r="6"/>
+      <circle class="cyc-dot" id="dot1" cx="280" cy="160" r="6"/>
+      <circle class="cyc-dot" id="dot2" cx="160" cy="280" r="6"/>
+      <circle class="cyc-dot" id="dot3" cx="40" cy="160" r="6"/>
+      <text class="cyc-label" x="160" y="24" text-anchor="middle">VARIAZIONE</text>
+      <text class="cyc-label" x="298" y="164" text-anchor="start">SELEZIONE</text>
+      <text class="cyc-label" x="160" y="300" text-anchor="middle">EREDITÀ</text>
+      <text class="cyc-label" x="22" y="164" text-anchor="end">TEMPO</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============ SIMULATORE ============ -->
+<section id="simulatore">
+  <span class="eyebrow">Provalo tu stesso</span>
+  <h2 style="font-size:clamp(1.6rem,3.4vw,2.2rem); max-width:18ch; margin-bottom:14px;">Un laboratorio di selezione naturale</h2>
+  <p class="lead">Questa è una popolazione di falene che vive su una corteccia. Alcune sono chiare, altre scure: un tratto casuale, ereditario. Gli uccelli predatori vedono più facilmente le falene che contrastano con lo sfondo. Cambia l'ambiente e fai avanzare le generazioni per osservare come si sposta la popolazione.</p>
+
+  <div class="sim-panel">
+    <div class="sim-top">
+      <div>
+        <span class="eyebrow" style="margin-bottom:8px;">Ambiente</span>
+        <div class="env-toggle">
+          <button id="envClean" class="active">Corteccia chiara</button>
+          <button id="envDirty">Corteccia scura</button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div>GENERAZIONE<b id="statGen">0</b></div>
+        <div>COLORE MEDIO<b id="statAvg">50% scuro</b></div>
+        <div>POPOLAZIONE<b id="statPop">40</b></div>
+      </div>
+    </div>
+
+    <div class="sim-stage">
+      <canvas id="barkCanvas" width="900" height="380"></canvas>
+    </div>
+
+    <div class="sim-controls">
+      <button class="btn" id="stepBtn">Fai passare una generazione</button>
+      <button class="btn secondary" id="jumpBtn">Salta 10 generazioni</button>
+      <button class="btn secondary" id="resetBtn">Ricomincia</button>
+    </div>
+
+    <div id="chartWrap">
+      <svg id="chartSvg" viewBox="0 0 900 110" preserveAspectRatio="none"></svg>
+      <div class="chart-caption">Quota media di falene scure nella popolazione, generazione dopo generazione</div>
+    </div>
+
+    <p class="sim-note">Questo fenomeno è realmente accaduto: si chiama <b style="color:var(--text-cream)">melanismo industriale</b>. Nell'Inghilterra dell'Ottocento l'inquinamento anneriva i tronchi degli alberi e le falene scure, prima rare, divennero la maggioranza in pochi decenni. Quando l'aria tornò pulita, la tendenza si invertì.</p>
+  </div>
+</section>
+
+<!-- ============ ESEMPI ============ -->
+<section id="esempi">
+  <span class="eyebrow">In natura</span>
+  <h2 style="font-size:clamp(1.6rem,3.4vw,2.2rem); max-width:18ch; margin-bottom:14px;">Lo stesso meccanismo, forme diversissime</h2>
+  <p class="lead">Piante, animali, funghi: regni diversi, stessa logica. Ogni adattamento racconta un ambiente e una pressione che lo ha modellato.</p>
+
+  <div class="examples-grid">
+    <div class="ex-card">
+      <svg class="ex-icon" viewBox="0 0 48 48" fill="none" stroke="#B87F2E" stroke-width="1.6">
+        <path d="M6 24c6-10 30-10 36 0-6 10-30 10-36 0z"/>
+        <circle cx="16" cy="24" r="2" fill="#B87F2E"/>
+        <path d="M42 24l5-4M42 24l5 4" stroke-linecap="round"/>
+      </svg>
+      <h3>Il becco dei fringuelli</h3>
+      <p>Nelle isole Galápagos, Darwin osservò specie di fringuelli con becchi di forma diversa: robusti per rompere semi duri, sottili per estrarre insetti. Ogni forma rispecchia il cibo disponibile sull'isola.</p>
+    </div>
+    <div class="ex-card">
+      <svg class="ex-icon" viewBox="0 0 48 48" fill="none" stroke="#B87F2E" stroke-width="1.6">
+        <ellipse cx="24" cy="30" rx="14" ry="9"/>
+        <circle cx="34" cy="20" r="7"/>
+        <circle cx="31" cy="18" r="1" fill="#B87F2E"/>
+      </svg>
+      <h3>Il pelo bianco dell'orso polare</h3>
+      <p>Un manto chiaro mimetizza l'orso nella neve durante la caccia, mentre uno strato di grasso e pelo folto trattiene il calore. Due adattamenti distinti allo stesso ambiente estremo.</p>
+    </div>
+    <div class="ex-card">
+      <svg class="ex-icon" viewBox="0 0 48 48" fill="none" stroke="#B87F2E" stroke-width="1.6">
+        <path d="M24 44V16"/>
+        <path d="M24 20c-6 0-8-6-6-10 5 1 7 5 6 10z"/>
+        <path d="M24 26c6 0 8-5 6-9-5 1-7 5-6 9z"/>
+      </svg>
+      <h3>Le spine del cactus</h3>
+      <p>In ambienti desertici, ridurre la superficie fogliare limita la perdita d'acqua per evaporazione. Le foglie si sono trasformate in spine, e il fusto si è ispessito per immagazzinare riserve idriche.</p>
+    </div>
+    <div class="ex-card">
+      <svg class="ex-icon" viewBox="0 0 48 48" fill="none" stroke="#B87F2E" stroke-width="1.6">
+        <path d="M18 44V22c0-8 4-14 10-16"/>
+        <circle cx="30" cy="8" r="4"/>
+        <path d="M18 44h-4M22 44h4"/>
+      </svg>
+      <h3>Il collo lungo della giraffa</h3>
+      <p>Un collo più lungo permette di raggiungere foglie che altri erbivori non possono mangiare, riducendo la competizione per il cibo nelle savane con alberi alti.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEMPO PROFONDO ============ -->
+<section id="tempo">
+  <span class="eyebrow">La scala del tempo</span>
+  <h2 style="font-size:clamp(1.6rem,3.4vw,2.2rem); max-width:18ch; margin-bottom:14px;">Perché serve così tanto tempo</h2>
+  <p class="lead">Se comprimiamo 4,6 miliardi di anni di storia della Terra in questa barra, si vede subito una cosa sorprendente: quasi tutto ciò che riconosciamo come "vita complessa" appare solo nell'ultimo, sottilissimo tratto.</p>
+
+  <div class="time-bar" id="timeBar"></div>
+  <div class="time-desc" id="timeDesc">
+    <span class="mya">Tocca un punto sulla barra</span>
+    <h3>Esplora le tappe della vita sulla Terra</h3>
+    <p>Ogni punto rappresenta un evento chiave, posizionato in proporzione a quando è avvenuto davvero.</p>
+  </div>
+  <div class="time-hint">I punti a destra sono quasi invisibili: è lì che si concentra quasi tutta la storia recente della vita.</div>
+</section>
+
+<!-- ============ CHIUSURA ============ -->
+<section class="closing">
+  <div class="accent-line"></div>
+  <h2>Non è la specie più forte a sopravvivere,<br>ma quella più capace di adattarsi al cambiamento.</h2>
+  <p class="lead" style="margin:0 auto;">L'evoluzione non ha una direzione né un traguardo finale: è un dialogo continuo, senza fine, tra ciò che un organismo è e ciò che il suo ambiente richiede.</p>
+</section>
+
+<footer>ARTEFATTO EDUCATIVO — L'EVOLUZIONE DEGLI ESSERI VIVENTI</footer>
+
+<script>
+/* ============ CYCLE HIGHLIGHT ON HOVER ============ */
+const steps = document.querySelectorAll('.step');
+const arcs = [document.getElementById('arc0'),document.getElementById('arc1'),document.getElementById('arc2'),document.getElementById('arc3')];
+const dots = [document.getElementById('dot0'),document.getElementById('dot1'),document.getElementById('dot2'),document.getElementById('dot3')];
+let cycleIndex = 0;
+function setActive(i){
+  arcs.forEach((a,idx)=>a.classList.toggle('active', idx===i));
+  dots.forEach((d,idx)=>d.classList.toggle('active', idx===i));
+  steps.forEach((s)=> s.classList.toggle('dim', Number(s.dataset.i)!==i));
+}
+steps.forEach(s=>{
+  s.addEventListener('mouseenter', ()=> setActive(Number(s.dataset.i)));
+});
+document.getElementById('cycleSteps').addEventListener('mouseleave', ()=>{
+  steps.forEach(s=>s.classList.remove('dim'));
+  arcs.forEach(a=>a.classList.remove('active'));
+  dots.forEach(d=>d.classList.remove('active'));
+});
+let autoCycle = setInterval(()=>{ setActive(cycleIndex); cycleIndex=(cycleIndex+1)%4; }, 2200);
+document.getElementById('cycleSteps').addEventListener('mouseenter', ()=> clearInterval(autoCycle));
+
+/* ============ SIMULATORE DI SELEZIONE NATURALE ============ */
+const canvas = document.getElementById('barkCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const POP_SIZE = 40;
+let bgTrait = 0.12; // 0 = chiaro, 1 = scuro
+let generation = 0;
+let population = [];
+let history = [];
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+
+function initPopulation(){
+  population = [];
+  for(let i=0;i<POP_SIZE;i++){
+    population.push({
+      trait: rand(0,1),
+      x: rand(30, W-30),
+      y: rand(30, H-30),
+      rot: rand(-0.5,0.5)
+    });
+  }
+  generation = 0;
+  history = [avgTrait()];
+}
+
+function avgTrait(){
+  return population.reduce((s,m)=>s+m.trait,0)/population.length;
+}
+
+function lerpColor(t){
+  const c1 = [0xDC,0xCB,0xA0]; // light
+  const c2 = [0x3B,0x2A,0x1E]; // dark
+  const r = Math.round(c1[0]+(c2[0]-c1[0])*t);
+  const g = Math.round(c1[1]+(c2[1]-c1[1])*t);
+  const b = Math.round(c1[2]+(c2[2]-c1[2])*t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawBark(){
+  // base gradient depending on bgTrait
+  const light = lerpColor(bgTrait*0.6);
+  const dark = lerpColor(Math.min(1,bgTrait*0.6+0.35));
+  const grad = ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0, light);
+  grad.addColorStop(1, dark);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+  // texture: pseudo-random bark lines (deterministic seed so it doesn't jump each frame)
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth = 2;
+  let seed = 42;
+  function srand(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+  for(let i=0;i<26;i++){
+    ctx.beginPath();
+    let x = srand()*W;
+    ctx.moveTo(x, 0);
+    let cx1 = x + (srand()-0.5)*60, cy1 = H*0.3;
+    let cx2 = x + (srand()-0.5)*80, cy2 = H*0.7;
+    let ex = x + (srand()-0.5)*100;
+    ctx.bezierCurveTo(cx1,cy1,cx2,cy2,ex,H);
+    ctx.stroke();
+  }
+}
+
+function drawMoth(m){
+  ctx.save();
+  ctx.translate(m.x, m.y);
+  ctx.rotate(m.rot);
+  const color = lerpColor(m.trait);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+  ctx.lineWidth = 0.8;
+  // body
+  ctx.beginPath();
+  ctx.ellipse(0,0,3.2,9,0,0,Math.PI*2);
+  ctx.fill();
+  // wings
+  ctx.beginPath();
+  ctx.ellipse(-9,-2,10,6,-0.5,0,Math.PI*2);
+  ctx.ellipse(9,-2,10,6,0.5,0,Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+function render(){
+  drawBark();
+  population.forEach(drawMoth);
+  document.getElementById('statGen').textContent = generation;
+  document.getElementById('statPop').textContent = population.length;
+  const a = avgTrait();
+  document.getElementById('statAvg').textContent = Math.round(a*100)+'% scuro';
+  drawChart();
+}
+
+function drawChart(){
+  const svg = document.getElementById('chartSvg');
+  const w = 900, h = 110, pad = 8;
+  const maxPoints = Math.max(history.length, 2);
+  const pts = history.map((v,i)=>{
+    const x = pad + (i/(maxPoints-1||1))*(w-pad*2);
+    const y = h - pad - v*(h-pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  svg.innerHTML = `
+    <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="rgba(239,231,214,0.14)" stroke-width="1"/>
+    <line x1="${pad}" y1="${pad}" x2="${w-pad}" y2="${pad}" stroke="rgba(239,231,214,0.06)" stroke-width="1" stroke-dasharray="4 4"/>
+    <polyline points="${pts}" fill="none" stroke="#B87F2E" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+  `;
+}
+
+function stepGeneration(){
+  // predation
+  const survivors = population.filter(m=>{
+    const contrast = Math.abs(m.trait - bgTrait);
+    const survivalProb = clamp(1 - contrast*1.35, 0.06, 0.94);
+    return Math.random() < survivalProb;
+  });
+  const pool = survivors.length > 0 ? survivors : population;
+  // reproduction to refill population
+  const next = [];
+  for(let i=0;i<POP_SIZE;i++){
+    const parent = pool[Math.floor(Math.random()*pool.length)];
+    let trait = parent.trait + rand(-0.07,0.07);
+    trait = clamp(trait,0,1);
+    next.push({
+      trait,
+      x: rand(30, W-30),
+      y: rand(30, H-30),
+      rot: rand(-0.5,0.5)
+    });
+  }
+  population = next;
+  generation++;
+  history.push(avgTrait());
+  if(history.length > 60) history.shift();
+  render();
+}
+
+document.getElementById('stepBtn').addEventListener('click', stepGeneration);
+document.getElementById('jumpBtn').addEventListener('click', ()=>{
+  for(let i=0;i<10;i++) stepGeneration();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  initPopulation();
+  render();
+});
+document.getElementById('envClean').addEventListener('click', ()=>{
+  bgTrait = 0.12;
+  document.getElementById('envClean').classList.add('active');
+  document.getElementById('envDirty').classList.remove('active');
+  render();
+});
+document.getElementById('envDirty').addEventListener('click', ()=>{
+  bgTrait = 0.88;
+  document.getElementById('envDirty').classList.add('active');
+  document.getElementById('envClean').classList.remove('active');
+  render();
+});
+
+initPopulation();
+render();
+
+/* ============ TEMPO PROFONDO ============ */
+const events = [
+  {mya:4600, label:"Formazione della Terra", text:"Il pianeta si forma. Nessuna forma di vita esiste ancora: solo roccia fusa e un'atmosfera ostile."},
+  {mya:3800, label:"Prime forme di vita", text:"Compaiono i primi organismi unicellulari, semplici come batteri. Per oltre due miliardi di anni saranno l'unica forma di vita sulla Terra."},
+  {mya:2100, label:"Cellule complesse", text:"Nascono le prime cellule con nucleo (eucarioti), il passo che renderà possibile, molto più avanti, la vita pluricellulare."},
+  {mya:600, label:"Primi animali", text:"Compaiono i primi organismi pluricellulari riconoscibili come animali, ancora semplicissimi."},
+  {mya:375, label:"La vita esce dall'acqua", text:"I primi vertebrati sviluppano adattamenti per muoversi e respirare fuori dall'acqua, aprendo la strada alla vita sulla terraferma."},
+  {mya:225, label:"Primi dinosauri", text:"I dinosauri si diversificano e domineranno gli ecosistemi terrestri per oltre 160 milioni di anni."},
+  {mya:66, label:"Fine dei dinosauri", text:"Un evento catastrofico estingue i dinosauri non aviani. I piccoli mammiferi sopravvissuti trovano ambienti liberi in cui diversificarsi."},
+  {mya:6, label:"Primi ominidi", text:"Compaiono i primi antenati comuni tra scimmie e linea umana, ancora quadrupedi e arboricoli."},
+  {mya:0.3, label:"Homo sapiens", text:"La nostra specie compare: un istante quasi impercettibile nella storia della vita sulla Terra."}
+];
+
+const timeBar = document.getElementById('timeBar');
+const timeDesc = document.getElementById('timeDesc');
+const MAX_MYA = 4600;
+
+events.forEach((ev, idx)=>{
+  const pct = ((MAX_MYA - ev.mya) / MAX_MYA) * 100;
+  const dot = document.createElement('div');
+  dot.className = 'time-dot';
+  dot.style.left = pct + '%';
+  dot.setAttribute('role','button');
+  dot.setAttribute('tabindex','0');
+  dot.setAttribute('aria-label', ev.label);
+  dot.addEventListener('click', ()=> showEvent(idx));
+  dot.addEventListener('keypress', (e)=>{ if(e.key==='Enter') showEvent(idx); });
+  timeBar.appendChild(dot);
+});
+
+function showEvent(idx){
+  const ev = events[idx];
+  document.querySelectorAll('.time-dot').forEach((d,i)=> d.classList.toggle('active', i===idx));
+  const myaLabel = ev.mya >= 1 ? `${ev.mya.toLocaleString('it-IT')} milioni di anni fa` : `${Math.round(ev.mya*1000).toLocaleString('it-IT')} mila anni fa`;
+  timeDesc.innerHTML = `<span class="mya">${myaLabel}</span><h3>${ev.label}</h3><p>${ev.text}</p>`;
+}
+</script>
+</body>
+</html>

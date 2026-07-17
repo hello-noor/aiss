@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Leggi Fondamentali della Stupidità Umana — un gioco (poco) serio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-board:#7a1c14;
+  --bg-board-2:#4a0f0a;
+  --stripe-orange:#d9631f;
+  --stripe-orange-2:#b8420f;
+  --frame:#4a3524;
+  --frame-dark:#2e2015;
+  --paper:#eee3c8;
+  --paper-dark:#e0d2a8;
+  --chalk:#f2efe2;
+  --chalk-dim:#e0c3ac;
+  --stamp-red:#a53a2c;
+  --stamp-red-dark:#7e2c21;
+  --ink:#233028;
+  --gold:#c9a227;
+  --green-q:#4f7a5c;
+  --blue-q:#4a6b8a;
+  --gold-q:#b5892f;
+  --red-q:#a53a2c;
+  --shadow: rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Space Grotesk', sans-serif;
+  background: var(--frame-dark);
+  color: var(--chalk);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:14px;
+  -webkit-font-smoothing:antialiased;
+}
+.frame{
+  width:100%;
+  max-width:900px;
+  background: transparent;
+  border-radius:18px;
+  padding:0;
+  box-shadow: 0 20px 60px var(--shadow);
+}
+.board{
+  position:relative;
+  background:
+    repeating-linear-gradient(35deg,
+      rgba(217,99,31,0.22) 0px,
+      rgba(217,99,31,0.22) 26px,
+      transparent 26px,
+      transparent 64px),
+    repeating-linear-gradient(35deg,
+      rgba(184,66,15,0.16) 10px,
+      rgba(184,66,15,0.16) 18px,
+      transparent 18px,
+      transparent 90px),
+    radial-gradient(ellipse at 20% 10%, rgba(255,150,90,0.08), transparent 45%),
+    radial-gradient(ellipse at 80% 90%, rgba(255,110,60,0.07), transparent 45%),
+    linear-gradient(180deg, var(--bg-board), var(--bg-board-2));
+  border-radius:10px;
+  min-height:640px;
+  overflow:hidden;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.55), inset 0 0 2px rgba(255,140,80,0.08);
+}
+.board::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+  pointer-events:none;
+  mix-blend-mode:overlay;
+}
+.screen{
+  display:none;
+  flex-direction:column;
+  padding:28px 26px 22px;
+  min-height:640px;
+  position:relative;
+  animation: fadeIn .45s ease;
+}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.chalk-title{
+  font-family:'Caveat', cursive;
+  color: var(--chalk);
+  text-shadow: 0 0 1px rgba(255,255,255,0.3);
+}
+.eyebrow{
+  font-family:'Space Grotesk';
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: var(--gold);
+  opacity:.9;
+  margin-bottom:6px;
+  font-weight:600;
+}
+h1.title{
+  font-family:'Fraunces', serif;
+  font-weight:700;
+  font-size:clamp(26px, 4.4vw, 40px);
+  line-height:1.08;
+  color: var(--chalk);
+  margin:0 0 8px;
+}
+.subtitle{
+  font-family:'Caveat', cursive;
+  font-size:22px;
+  color: var(--chalk-dim);
+  margin:0 0 18px;
+}
+.paper-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family:'Space Grotesk';
+  font-size:12px;
+  font-weight:600;
+  padding:5px 12px;
+  border-radius:3px;
+  transform:rotate(-1.2deg);
+  box-shadow: 2px 3px 6px rgba(0,0,0,0.3);
+  margin-bottom:20px;
+  width:fit-content;
+}
+
+.bully-wrap{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.bully-svg{ flex-shrink:0; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35)); }
+.bully-caption{
+  font-family:'Caveat', cursive;
+  font-size:19px;
+  line-height:1.4;
+  color: var(--chalk-dim);
+  max-width:300px;
+}
+/* ---- Diagram (signature element) ---- */
+.diagram-wrap{
+  display:flex;
+  gap:26px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:6px 0 18px;
+}
+.diagram-wrap svg{ flex-shrink:0; }
+.diagram-caption{
+  font-size:14.5px;
+  line-height:1.55;
+  color: var(--chalk-dim);
+  max-width:320px;
+}
+.diagram-caption b{color:var(--chalk); font-weight:600;}
+
+.btn{
+  font-family:'Space Grotesk';
+  font-weight:700;
+  font-size:15px;
+  border:none;
+  cursor:pointer;
+  padding:13px 26px;
+  border-radius:4px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--paper-dark), 0 8px 14px rgba(0,0,0,0.3);
+  transition: transform .12s ease, box-shadow .12s ease;
+  letter-spacing:.01em;
+}
+.btn:hover{ transform: translateY(-2px); box-shadow: 0 6px 0 var(--paper-dark), 0 12px 18px rgba(0,0,0,0.35); }
+.btn:active{ transform: translateY(1px); box-shadow: 0 2px 0 var(--paper-dark); }
+.btn.ghost{
+  background:transparent;
+  color: var(--chalk);
+  box-shadow:none;
+  border:1.5px dashed rgba(242,239,226,0.4);
+}
+.btn.ghost:hover{ background: rgba(255,255,255,0.05); }
+.btn-row{ display:flex; gap:12px; margin-top:auto; flex-wrap:wrap; }
+
+/* ---- Progress ---- */
+.progress-row{
+  position:absolute; top:22px; right:24px;
+  display:flex; gap:6px; align-items:center;
+  font-family:'Space Grotesk'; font-size:12px; color:var(--chalk-dim);
+}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.18);}
+.dot.done{background:var(--gold);}
+
+/* ---- Sorting game ---- */
+.game-header{ margin-bottom:14px; }
+.game-header .kicker{ font-family:'Caveat'; font-size:20px; color:var(--chalk-dim); }
+.quad-grid{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:10px;
+  width:100%;
+  max-width:520px;
+  aspect-ratio:1/1;
+  margin:0 auto 16px;
+}
+.axis-label{
+  position:absolute;
+  font-family:'Caveat';
+  font-size:16px;
+  color: var(--chalk-dim);
+}
+.axis-x-lab{ bottom:-24px; left:50%; transform:translateX(-50%); }
+.axis-y-lab{ top:50%; left:-8px; transform:translate(-50%,-50%) rotate(-90deg); white-space:nowrap; }
+.quad{
+  border:1.5px dashed rgba(242,239,226,0.28);
+  border-radius:8px;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  position:relative;
+  transition: background .15s ease, border-color .15s ease;
+}
+.quad.hover{ background: rgba(255,255,255,0.06); border-color: rgba(242,239,226,0.6); }
+.quad-label{
+  font-family:'Space Grotesk'; font-weight:700; font-size:11.5px;
+  letter-spacing:.06em; text-transform:uppercase;
+  margin-bottom:4px;
+}
+.quad-sub{ font-size:10.5px; color:var(--chalk-dim); margin-bottom:6px; font-style:italic;}
+.quad[data-q="intelligente"] .quad-label{color:#8fd6a3;}
+.quad[data-q="ingenuo"] .quad-label{color:#8fb8e0;}
+.quad[data-q="bandito"] .quad-label{color:#e0c26a;}
+.quad[data-q="stupido"] .quad-label{color:#e88a78;}
+.quad-cards{ display:flex; flex-wrap:wrap; gap:4px; overflow:auto; flex:1; }
+.placed-chip{
+  background: var(--paper);
+  color: var(--ink);
+  font-size:10px;
+  padding:3px 6px;
+  border-radius:3px;
+  max-width:100%;
+  box-shadow:1px 2px 3px rgba(0,0,0,0.25);
+}
+
+.hand{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:auto;
+  padding-top:10px;
+  min-height:96px;
+}
+.card{
+  background: var(--paper);
+  color: var(--ink);
+  font-family:'Space Grotesk';
+  font-size:13px;
+  line-height:1.35;
+  padding:12px 14px;
+  border-radius:5px;
+  width:220px;
+  cursor:pointer;
+  box-shadow: 2px 4px 0 var(--paper-dark), 3px 6px 10px rgba(0,0,0,0.35);
+  transform:rotate(-0.6deg);
+  transition: transform .15s ease, box-shadow .15s ease, opacity .25s ease;
+  user-select:none;
+}
+.card:nth-child(even){ transform:rotate(0.7deg); }
+.card:hover{ transform: translateY(-3px) rotate(0deg); }
+.card.selected{
+  outline:2px solid var(--gold);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 2px 4px 0 var(--gold), 3px 8px 14px rgba(0,0,0,0.4);
+}
+.card.wrong-shake{ animation: shake .4s ease; }
+@keyframes shake{ 10%,90%{transform:translateX(-1px) rotate(-1deg);} 20%,80%{transform:translateX(2px) rotate(1deg);} 30%,50%,70%{transform:translateX(-4px) rotate(-2deg);} 40%,60%{transform:translateX(4px) rotate(2deg);} }
+.card.fade-out{ opacity:0; transform:scale(0.6); }
+
+.hint{
+  font-size:12.5px;
+  color: var(--chalk-dim);
+  text-align:center;
+  margin-bottom:6px;
+  font-style:italic;
+}
+
+/* ---- Stamp ---- */
+.stamp-layer{
+  position:fixed; inset:0;
+  display:none;
+  align-items:center; justify-content:center;
+  pointer-events:none;
+  z-index:50;
+}
+.stamp{
+  font-family:'Fraunces', serif;
+  font-weight:700;
+  font-size:52px;
+  color: var(--stamp-red);
+  border:6px solid var(--stamp-red);
+  border-radius:10px;
+  padding:6px 26px;
+  transform: scale(2.6) rotate(-12deg);
+  opacity:0;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  mix-blend-mode: multiply;
+  background: rgba(165,58,44,0.06);
+}
+.stamp.go{ animation: stampDown .38s cubic-bezier(.2,.9,.3,1.2) forwards; }
+@keyframes stampDown{
+  0%{ transform:scale(2.6) rotate(-12deg); opacity:0; }
+  55%{ transform:scale(0.94) rotate(-12deg); opacity:1; }
+  70%{ transform:scale(1.05) rotate(-12deg); opacity:1; }
+  100%{ transform:scale(1) rotate(-12deg); opacity:1; }
+}
+.stamp.green{ color:#3f6b4f; border-color:#3f6b4f; background:rgba(63,107,79,0.06); }
+
+/* ---- Quiz ---- */
+.quiz-card{
+  background: var(--paper);
+  color: var(--ink);
+  border-radius:10px;
+  padding:22px 24px;
+  box-shadow: 3px 6px 0 var(--paper-dark), 4px 10px 20px rgba(0,0,0,0.35);
+  max-width:560px;
+  margin:0 auto;
+  width:100%;
+  transform:rotate(-0.3deg);
+}
+.quiz-law-tag{
+  font-family:'Space Grotesk'; font-weight:700; font-size:11px;
+  letter-spacing:.1em; text-transform:uppercase; color: var(--stamp-red);
+  margin-bottom:8px;
+}
+.quiz-q{
+  font-family:'Fraunces', serif; font-weight:600; font-size:19px;
+  line-height:1.35; margin-bottom:16px; color:var(--ink);
+}
+.opt{
+  display:block;
+  width:100%;
+  text-align:left;
+  background: var(--paper-dark);
+  border:1.5px solid rgba(35,48,40,0.15);
+  color: var(--ink);
+  font-family:'Space Grotesk'; font-size:14px; font-weight:500;
+  padding:11px 14px;
+  border-radius:6px;
+  margin-bottom:8px;
+  cursor:pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+.opt:hover{ background:#d8c99a; }
+.opt.correct{ background:#a9cdb3; border-color:#3f6b4f; }
+.opt.incorrect{ background:#e0a89b; border-color:var(--stamp-red); }
+.opt:disabled{ cursor:default; }
+.feedback-box{
+  margin-top:10px;
+  font-size:13.5px;
+  line-height:1.5;
+  font-style:italic;
+  color: var(--ink);
+  min-height:20px;
+}
+
+/* ---- Reflection callouts ---- */
+.reflection{
+  background: rgba(242,239,226,0.06);
+  border-left:3px solid var(--gold);
+  padding:12px 16px;
+  border-radius:4px;
+  font-size:13.5px;
+  line-height:1.6;
+  color: var(--chalk-dim);
+  max-width:560px;
+  margin:14px auto 0;
+}
+.reflection b{ color:var(--gold); font-weight:600; }
+
+/* ---- Final screen ---- */
+.badge{
+  font-family:'Fraunces', serif;
+  font-weight:700;
+  font-size:28px;
+  color: var(--gold);
+  text-align:center;
+  margin:8px 0 4px;
+}
+.score-line{
+  text-align:center;
+  font-family:'Caveat';
+  font-size:22px;
+  color: var(--chalk-dim);
+  margin-bottom:18px;
+}
+.final-reflection{
+  background: var(--paper);
+  color: var(--ink);
+  border-radius:10px;
+  padding:22px 26px;
+  max-width:620px;
+  margin:0 auto 18px;
+  box-shadow: 3px 6px 0 var(--paper-dark), 4px 10px 22px rgba(0,0,0,0.35);
+  font-size:14.5px;
+  line-height:1.65;
+}
+.final-reflection h3{
+  font-family:'Fraunces', serif; margin:0 0 10px; font-size:19px; color:var(--stamp-red);
+}
+.laws-recap{
+  max-width:620px; margin:0 auto 18px; width:100%;
+}
+.law-line{
+  font-size:13px; line-height:1.5; color:var(--chalk-dim); margin-bottom:6px;
+  padding-left:14px; border-left:2px solid rgba(201,162,39,0.4);
+}
+.law-line b{ color:var(--gold); }
+
+footer.center-row{ display:flex; justify-content:center; margin-top:auto; }
+.credits{
+  text-align:center;
+  font-family:'Caveat', cursive;
+  font-size:18px;
+  color: var(--chalk-dim);
+  margin-top:14px;
+  opacity:0.85;
+}
+
+@media (max-width:600px){
+  .screen{ padding:20px 16px 18px; min-height:auto; }
+  .board{ min-height:auto; }
+  h1.title{ font-size:24px; }
+  .card{ width:100%; }
+  .diagram-wrap{ justify-content:center; }
+  .diagram-caption{ max-width:100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="board">
+
+    <!-- SCREEN 0: INTRO -->
+    <section class="screen active" id="screen-intro">
+      <div class="bully-wrap">
+        <svg width="280" height="190" viewBox="0 0 280 190" class="bully-svg">
+          <!-- ombra a terra -->
+          <ellipse cx="188" cy="178" rx="52" ry="6" fill="rgba(0,0,0,0.25)"/>
+          <ellipse cx="66" cy="178" rx="28" ry="5" fill="rgba(0,0,0,0.22)"/>
+
+          <!-- VITTIMA: piccola, spalle curve, braccia alzate a proteggersi -->
+          <g stroke="#e0c3ac" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+            <!-- corpo curvo -->
+            <path d="M66 118 q-4 24 2 40" stroke-width="5"/>
+            <!-- gambe -->
+            <path d="M68 158 L58 178 M68 158 L78 176" stroke-width="4.5"/>
+            <!-- testa bassa -->
+            <circle cx="60" cy="106" r="14" fill="none"/>
+            <!-- braccia alzate a scudo -->
+            <path d="M64 122 q-14 -6 -20 -22" stroke-width="4"/>
+            <path d="M68 122 q14 -4 22 -18" stroke-width="4"/>
+            <!-- occhi chiusi / preoccupati -->
+            <path d="M54 104 q3 -3 6 0 M62 104 q3 -3 6 0" stroke-width="2"/>
+            <path d="M55 112 q5 -2 9 0" stroke-width="2"/>
+          </g>
+
+          <!-- BULLO: grande, chino avanti, dito puntato, ghigno -->
+          <g stroke="#f2efe2" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <!-- gambe divaricate, in posa da spaccone -->
+            <path d="M172 150 L154 180 M198 150 L214 180" stroke-width="7"/>
+            <path d="M150 180 h10 M210 180 h10" stroke-width="6"/>
+            <!-- corpo chino verso la vittima, petto in fuori -->
+            <path d="M172 150 Q168 118 190 100" stroke-width="8"/>
+            <path d="M198 150 Q206 118 190 100" stroke-width="8"/>
+            <!-- braccio destro sul fianco -->
+            <path d="M198 112 q22 4 26 24" stroke-width="6"/>
+            <!-- braccio sinistro teso, dito puntato verso la vittima -->
+            <path d="M175 106 q-32 4 -56 4" stroke-width="6.5"/>
+            <path d="M119 110 l-8 -3 M119 110 l-4 6 M119 110 l3 8" stroke-width="3"/>
+            <!-- testa grande, chinata avanti, ghigno beffardo -->
+            <circle cx="200" cy="76" r="28" fill="#e88a78" stroke="#f2efe2"/>
+            <path d="M182 68 q9 -10 20 -3" stroke-width="3"/>
+            <path d="M198 68 q10 -8 20 2" stroke-width="3"/>
+            <circle cx="190" cy="74" r="2.8" fill="#2c1a12" stroke="none"/>
+            <circle cx="212" cy="74" r="2.8" fill="#2c1a12" stroke="none"/>
+            <path d="M186 88 q14 12 30 1" stroke-width="4"/>
+            <path d="M191 90 l2 5 M198 92 l1 6 M205 92 l-1 6 M212 89 l-2 5" stroke-width="2.4"/>
+          </g>
+
+          <text x="152" y="30" font-family="Caveat" font-size="18" fill="#e0c3ac">guadagno: 0</text>
+          <text x="12" y="150" font-family="Caveat" font-size="18" fill="#e0c3ac">danno: massimo</text>
+        </svg>
+        <div class="bully-caption">Il bullo del cortile non ci guadagna nulla: solo danno, per lui e per l'altro. Un caso da manuale — vedremo presto in quale quadrante lo mettiamo.</div>
+      </div>
+      <div class="eyebrow">Cattedra di Scienze Umane Applicate</div>
+      <h1 class="title">Le Leggi Fondamentali<br>della Stupidità Umana</h1>
+      <div class="subtitle">un gioco (poco) serio ispirato al saggio del Prof. Carlo M. Cipolla</div>
+      <div class="paper-tag">📜 5 leggi · 1 mappa cartesiana · nessuna via di scampo</div>
+
+      <div class="diagram-wrap">
+        <svg width="230" height="230" viewBox="0 0 230 230">
+          <line x1="20" y1="115" x2="220" y2="115" stroke="#e0c3ac" stroke-width="1.2" stroke-dasharray="4 4"/>
+          <line x1="115" y1="10" x2="115" y2="210" stroke="#e0c3ac" stroke-width="1.2" stroke-dasharray="4 4"/>
+          <text x="222" y="119" font-family="Caveat" font-size="14" fill="#e0c3ac">+ io</text>
+          <text x="10" y="119" font-family="Caveat" font-size="14" fill="#e0c3ac">− io</text>
+          <text x="119" y="14" font-family="Caveat" font-size="14" fill="#e0c3ac">+ altri</text>
+          <text x="119" y="206" font-family="Caveat" font-size="14" fill="#e0c3ac">− altri</text>
+          <text x="150" y="60" font-family="Space Grotesk" font-weight="700" font-size="12" fill="#8fd6a3">INTELLIGENTE</text>
+          <text x="35" y="60" font-family="Space Grotesk" font-weight="700" font-size="12" fill="#8fb8e0">INGENUO</text>
+          <text x="150" y="170" font-family="Space Grotesk" font-weight="700" font-size="12" fill="#e0c26a">BANDITO</text>
+          <text x="45" y="170" font-family="Space Grotesk" font-weight="700" font-size="12" fill="#e88a78">STUPIDO</text>
+        </svg>
+        <div class="diagram-caption">
+          Cipolla piazza ogni essere umano su una mappa a due assi: quanto <b>guadagno io</b> e quanto <b>guadagnano gli altri</b> dalle mie azioni. Da questa mappa nascono quattro categorie — e una, la più pericolosa, non è quella che pensi.
+        </div>
+      </div>
+
+      <div class="reflection">
+        Prima regola del gioco: se stai pensando "per fortuna io non rientro in nessuna di queste categorie"... <b>rileggi la Legge n.1.</b>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" onclick="goTo('screen-sort-intro')">Inizia la lezione →</button>
+      </div>
+    </section>
+
+    <!-- SCREEN 1: SORTING GAME INTRO -->
+    <section class="screen" id="screen-sort-intro">
+      <div class="eyebrow">Esercitazione 1 di 2</div>
+      <h1 class="title" style="font-size:28px;">Smista i personaggi</h1>
+      <p class="subtitle" style="font-size:20px;">12 casi umani. Tu decidi in quale quadrante finiscono.</p>
+      <div class="reflection">
+        Clicca una scheda per selezionarla, poi clicca il quadrante che ritieni corretto. Ogni scheda descrive un comportamento reale (fin troppo reale). Il quadrante giusto dipende da una sola domanda: <b>chi ci guadagna, e chi ci perde?</b>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="goTo('screen-intro')">← Indietro</button>
+        <button class="btn" onclick="startSorting()">Vai in cattedra →</button>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: SORTING GAME -->
+    <section class="screen" id="screen-sort">
+      <div class="progress-row" id="sort-progress"></div>
+      <div class="game-header">
+        <div class="kicker">Mappa di Cipolla</div>
+      </div>
+
+      <div class="quad-grid" id="quad-grid">
+        <div class="axis-label axis-x-lab">beneficio per SÉ →</div>
+        <div class="axis-label axis-y-lab">beneficio per gli ALTRI →</div>
+        <div class="quad" data-q="ingenuo"><div class="quad-label">Ingenuo</div><div class="quad-sub">perde io, guadagnano loro</div><div class="quad-cards"></div></div>
+        <div class="quad" data-q="intelligente"><div class="quad-label">Intelligente</div><div class="quad-sub">guadagna io, guadagnano loro</div><div class="quad-cards"></div></div>
+        <div class="quad" data-q="stupido"><div class="quad-label">Stupido</div><div class="quad-sub">perde io, perdono loro</div><div class="quad-cards"></div></div>
+        <div class="quad" data-q="bandito"><div class="quad-label">Bandito</div><div class="quad-sub">guadagna io, perdono loro</div><div class="quad-cards"></div></div>
+      </div>
+
+      <div class="hint" id="sort-hint">Seleziona una scheda qui sotto ↓</div>
+      <div class="hand" id="hand"></div>
+    </section>
+
+    <!-- SCREEN 3: SORTING RESULT -->
+    <section class="screen" id="screen-sort-result">
+      <div class="eyebrow">Esercitazione 1 — completata</div>
+      <h1 class="title" style="font-size:28px;">Diagnosi fatta.</h1>
+      <div class="score-line" id="sort-score-line"></div>
+      <div class="reflection">
+        Nota bene: nella vita reale i confini tra questi quadranti sono molto più sfumati che nel gioco. La stessa persona può essere intelligente al lavoro e stupida al volante, dieci minuti dopo. <b>Cipolla non descrive categorie di persone, ma categorie di azioni.</b>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="goTo('screen-quiz-intro')">Prossima esercitazione →</button>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: QUIZ INTRO -->
+    <section class="screen" id="screen-quiz-intro">
+      <div class="eyebrow">Esercitazione 2 di 2</div>
+      <h1 class="title" style="font-size:28px;">Interrogazione sulle 5 Leggi</h1>
+      <p class="subtitle" style="font-size:20px;">Niente ripetizioni. Solo Cipolla, tutto Cipolla.</p>
+      <div class="reflection">
+        Cinque domande, una per legge. Rispondi con onestà: nessuno ti sta guardando. Be', a parte la lavagna.
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="goTo('screen-sort-result')">← Indietro</button>
+        <button class="btn" onclick="startQuiz()">Comincia l'interrogazione →</button>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: QUIZ -->
+    <section class="screen" id="screen-quiz">
+      <div class="progress-row" id="quiz-progress"></div>
+      <div class="game-header">
+        <div class="kicker">Interrogazione</div>
+      </div>
+      <div class="quiz-card" id="quiz-card"></div>
+      <div class="btn-row" id="quiz-nav" style="justify-content:center;"></div>
+    </section>
+
+    <!-- SCREEN 6: FINAL -->
+    <section class="screen" id="screen-final">
+      <div class="eyebrow" style="text-align:center;">Fine della lezione</div>
+      <div class="badge" id="final-badge"></div>
+      <div class="score-line" id="final-score"></div>
+
+      <div class="final-reflection">
+        <h3>Cosa resta, tolto il gioco</h3>
+        <p>Cipolla scrive il saggio nel 1976, mezzo per gioco e mezzo sul serio, ma la sua tesi resiste: <b>la stupidità non è mancanza di intelligenza</b>, è una forma di potere — la capacità di danneggiare gli altri senza che questo porti alcun vantaggio, a volte nemmeno a chi lo fa. Il bandito almeno ci guadagna: puoi prevederlo, puoi contrattare, puoi difenderti. Lo stupido no. Lo stupido colpisce senza logica, senza tornaconto, ed è per questo — dice la Quinta Legge — <b>più pericoloso di qualsiasi bandito.</b></p>
+        <p>La riflessione più scomoda del libro non riguarda "gli altri stupidi". Riguarda noi: quante volte, in dieci minuti di fretta o di rabbia, siamo scivolati proprio in quel quadrante in basso a sinistra? La mappa di Cipolla non è un modo per etichettare il mondo. È uno specchio che conviene consultare più spesso di quanto ci piacerebbe.</p>
+      </div>
+
+      <div class="laws-recap" id="laws-recap"></div>
+
+      <footer class="center-row">
+        <button class="btn" onclick="restartAll()">Ricomincia la lezione ↺</button>
+      </footer>
+      <div class="credits">lezione tenuta da Egidio, Luigi, Greta e Francesca</div>
+    </section>
+
+  </div>
+</div>
+
+<div class="stamp-layer" id="stamp-layer">
+  <div class="stamp" id="stamp-el"></div>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const QUAD_META = {
+  intelligente:{label:'Intelligente', color:'#8fd6a3'},
+  ingenuo:{label:'Ingenuo', color:'#8fb8e0'},
+  bandito:{label:'Bandito', color:'#e0c26a'},
+  stupido:{label:'Stupido', color:'#e88a78'}
+};
+
+const CARDS = [
+  {q:'intelligente', text:"Il collega che condivide un trucco per risparmiare tempo a tutto l'ufficio, e per questo viene notato dal capo."},
+  {q:'intelligente', text:"L'imprenditore che paga bene il suo team e vede l'azienda crescere insieme ai dipendenti."},
+  {q:'intelligente', text:"Chi negozia con un fornitore un accordo dove entrambi risparmiano tempo e denaro."},
+  {q:'ingenuo', text:"Chi presta di nuovo soldi all'amico \"sicurissimo\" che non li ha mai restituiti le altre tre volte."},
+  {q:'ingenuo', text:"Chi fa straordinari gratis \"per il bene del team\", mentre il capo intasca da solo il bonus di squadra."},
+  {q:'ingenuo', text:"Chi firma da garante per il cognato senza leggere il contratto, \"tanto è di famiglia\"."},
+  {q:'bandito', text:"Il politico che vota una legge su misura per gli amici degli amici, e per nessun altro."},
+  {q:'bandito', text:"Il venditore che spinge il prodotto con la commissione più alta, non quello più adatto al cliente."},
+  {q:'bandito', text:"Chi parcheggia nel posto riservato ai disabili \"solo due minuti\", togliendolo a chi ne ha davvero bisogno."},
+  {q:'stupido', text:"Chi manda in copia a tutta l'azienda una mail polemica che fa infuriare capo e colleghi, senza ottenere nulla."},
+  {q:'stupido', text:"Chi passa col rosso per risparmiare dieci secondi, rischiando un incidente per sé e per chi ha la precedenza."},
+  {q:'stupido', text:"Chi condivide una fake news senza controllarla, rovinando la reputazione di qualcuno e la propria credibilità."}
+];
+
+const LAWS = [
+  {
+    n:1,
+    law:"Sempre e inevitabilmente ognuno di noi sottovaluta il numero di persone stupide in circolazione.",
+    question:"Secondo la Prima Legge, quanti stupidi ci sono davvero in circolazione, rispetto a quanti pensiamo?",
+    options:["Meno di quanti crediamo","Esattamente quanti crediamo","Sempre di più di quanti crediamo","Il numero è impossibile da stimare"],
+    correct:2,
+    feedback:"Esatto: per quanto la tua stima sia già pessimista, la realtà la batte sempre. È una legge, non un'opinione."
+  },
+  {
+    n:2,
+    law:"La probabilità che una persona sia stupida è indipendente da qualsiasi altra sua caratteristica.",
+    question:"Da cosa dipende, secondo Cipolla, la probabilità che una persona sia stupida?",
+    options:["Dal titolo di studio","Dal ruolo sociale o dal reddito","Da nessuna di queste: è una costante indipendente","Dall'età, più si invecchia più aumenta"],
+    correct:2,
+    feedback:"Corretto, e qui sta il colpo di genio: laurea, potere, ricchezza non sono vaccini. La stupidità è distribuita ovunque, senza guardare il curriculum."
+  },
+  {
+    n:3,
+    law:"Una persona stupida è chi causa un danno a un'altra persona o a un gruppo, senza ottenerne alcun vantaggio, e talvolta danneggiando anche se stessa.",
+    question:"Qual è la vera definizione di \"stupido\" secondo Cipolla?",
+    options:["Chi ha un basso quoziente intellettivo","Chi danneggia gli altri senza guadagnarci nulla, a volte perdendoci pure lui","Chi commette errori per ignoranza","Chi agisce sempre in modo irrazionale"],
+    correct:1,
+    feedback:"Sì: la stupidità di Cipolla non è un problema di quoziente intellettivo, è un problema di bilancio. Danno agli altri, guadagno zero. Il bilancio non torna, e non torna per nessuno."
+  },
+  {
+    n:4,
+    law:"Le persone non stupide sottovalutano sempre il potere dannoso delle persone stupide.",
+    question:"Qual è l'errore più comune che le persone \"intelligenti\" commettono verso gli stupidi?",
+    options:["Li evitano troppo","Li sottovalutano, pensando di poterli gestire facilmente","Li imitano per convenienza","Li segnalano sempre alle autorità"],
+    correct:1,
+    feedback:"Proprio così: sottovalutare uno stupido è quasi sempre un errore costoso. Con un bandito puoi negoziare. Con uno stupido, no: la sua prossima mossa non ha logica da prevedere."
+  },
+  {
+    n:5,
+    law:"Una persona stupida è più pericolosa di un bandito, perché il bandito è vincolato dal proprio tornaconto: è quindi in parte prevedibile.",
+    question:"Perché, secondo la Quinta Legge, uno stupido è più pericoloso di un bandito?",
+    options:["Perché è più numeroso","Perché il bandito è prevedibile (agisce per interesse), lo stupido no","Perché lo stupido è più intelligente del bandito","Perché i banditi collaborano tra loro, gli stupidi no"],
+    correct:1,
+    feedback:"Esatto. Un bandito calcola costi e benefici, quindi puoi in parte anticiparlo. Uno stupido no: colpisce senza un piano, e proprio per questo è imprevedibile — e imbattibile con la logica."
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let sortState = { deck:[], selectedIdx:null, correctCount:0, attempts:0 };
+let quizState = { idx:0, score:0, answered:false };
+
+/* ---------------- NAV ---------------- */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0});
+}
+
+function stamp(text, isGreen){
+  const layer = document.getElementById('stamp-layer');
+  const el = document.getElementById('stamp-el');
+  el.textContent = text;
+  el.className = 'stamp go' + (isGreen ? ' green' : '');
+  layer.style.display = 'flex';
+  setTimeout(()=>{
+    layer.style.display = 'none';
+    el.className = 'stamp';
+  }, 650);
+}
+
+/* ---------------- SORTING GAME ---------------- */
+function startSorting(){
+  sortState.deck = CARDS.map((c,i)=>({...c, id:i, placed:false}));
+  sortState.selectedIdx = null;
+  sortState.correctCount = 0;
+  sortState.attempts = 0;
+  renderHand();
+  renderQuadCards();
+  updateSortProgress();
+  document.getElementById('sort-hint').textContent = 'Seleziona una scheda qui sotto ↓';
+  goTo('screen-sort');
+}
+
+function updateSortProgress(){
+  const total = sortState.deck.length;
+  const placed = sortState.deck.filter(c=>c.placed).length;
+  const wrap = document.getElementById('sort-progress');
+  wrap.innerHTML = '';
+  for(let i=0;i<total;i++){
+    const d = document.createElement('span');
+    d.className = 'dot' + (i < placed ? ' done' : '');
+    wrap.appendChild(d);
+  }
+}
+
+function renderHand(){
+  const hand = document.getElementById('hand');
+  hand.innerHTML = '';
+  sortState.deck.filter(c=>!c.placed).forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.textContent = c.text;
+    div.dataset.id = c.id;
+    if(sortState.selectedIdx === c.id) div.classList.add('selected');
+    div.addEventListener('click', ()=>selectCard(c.id));
+    hand.appendChild(div);
+  });
+  if(sortState.deck.every(c=>c.placed)){
+    setTimeout(finishSorting, 400);
+  }
+}
+
+function renderQuadCards(){
+  document.querySelectorAll('.quad').forEach(qEl=>{
+    const q = qEl.dataset.q;
+    const container = qEl.querySelector('.quad-cards');
+    container.innerHTML = '';
+    sortState.deck.filter(c=>c.placed && c.q===q).forEach(c=>{
+      const chip = document.createElement('div');
+      chip.className = 'placed-chip';
+      chip.textContent = c.text.slice(0,42) + (c.text.length>42?'…':'');
+      container.appendChild(chip);
+    });
+  });
+}
+
+function selectCard(id){
+  sortState.selectedIdx = id;
+  renderHand();
+  document.getElementById('sort-hint').textContent = 'Ora clicca il quadrante giusto →';
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.quad').forEach(qEl=>{
+    qEl.addEventListener('click', ()=>onQuadClick(qEl.dataset.q));
+    qEl.addEventListener('mouseenter', ()=>{ if(sortState.selectedIdx!==null) qEl.classList.add('hover'); });
+    qEl.addEventListener('mouseleave', ()=> qEl.classList.remove('hover'));
+  });
+});
+
+function onQuadClick(q){
+  if(sortState.selectedIdx === null) return;
+  const card = sortState.deck.find(c=>c.id===sortState.selectedIdx);
+  sortState.attempts++;
+  if(card.q === q){
+    card.placed = true;
+    sortState.correctCount++;
+    stamp('Giusto', true);
+    sortState.selectedIdx = null;
+    renderHand();
+    renderQuadCards();
+    updateSortProgress();
+    document.getElementById('sort-hint').textContent = sortState.deck.every(c=>c.placed) ? 'Fatto!' : 'Seleziona la prossima scheda ↓';
+  } else {
+    stamp('Sbagliato', false);
+    const handCard = document.querySelector(`.card[data-id="${card.id}"]`);
+    if(handCard){
+      handCard.classList.add('wrong-shake');
+      setTimeout(()=>handCard.classList.remove('wrong-shake'), 400);
+    }
+  }
+}
+
+function finishSorting(){
+  const total = sortState.deck.length;
+  const accuracy = Math.round((total / sortState.attempts) * 100);
+  document.getElementById('sort-score-line').textContent =
+    `${total} casi smistati in ${sortState.attempts} tentativi — precisione ${accuracy}%`;
+  goTo('screen-sort-result');
+}
+
+/* ---------------- QUIZ ---------------- */
+function startQuiz(){
+  quizState.idx = 0;
+  quizState.score = 0;
+  renderQuizQuestion();
+  goTo('screen-quiz');
+}
+
+function updateQuizProgress(){
+  const wrap = document.getElementById('quiz-progress');
+  wrap.innerHTML = '';
+  LAWS.forEach((l,i)=>{
+    const d = document.createElement('span');
+    d.className = 'dot' + (i < quizState.idx ? ' done' : '');
+    wrap.appendChild(d);
+  });
+}
+
+function renderQuizQuestion(){
+  updateQuizProgress();
+  quizState.answered = false;
+  const law = LAWS[quizState.idx];
+  const card = document.getElementById('quiz-card');
+  card.innerHTML = `
+    <div class="quiz-law-tag">Legge n. ${law.n}</div>
+    <div class="quiz-q">${law.question}</div>
+    <div id="opts"></div>
+    <div class="feedback-box" id="feedback"></div>
+  `;
+  const optsWrap = card.querySelector('#opts');
+  law.options.forEach((opt, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.addEventListener('click', ()=>answerQuiz(i));
+    optsWrap.appendChild(btn);
+  });
+  document.getElementById('quiz-nav').innerHTML = '';
+}
+
+function answerQuiz(i){
+  if(quizState.answered) return;
+  quizState.answered = true;
+  const law = LAWS[quizState.idx];
+  const opts = document.querySelectorAll('#opts .opt');
+  opts.forEach((o,idx)=>{
+    o.disabled = true;
+    if(idx === law.correct) o.classList.add('correct');
+    else if(idx === i) o.classList.add('incorrect');
+  });
+  const isCorrect = i === law.correct;
+  if(isCorrect) quizState.score++;
+  stamp(isCorrect ? 'Corretto' : 'Sbagliato', isCorrect);
+  document.getElementById('feedback').innerHTML =
+    `<b>Legge n.${law.n}:</b> "${law.law}"<br><br>${law.feedback}`;
+
+  const nav = document.getElementById('quiz-nav');
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.textContent = quizState.idx < LAWS.length - 1 ? 'Prossima legge →' : 'Vedi il risultato finale →';
+  btn.onclick = nextQuizQuestion;
+  nav.appendChild(btn);
+}
+
+function nextQuizQuestion(){
+  quizState.idx++;
+  if(quizState.idx >= LAWS.length){
+    finishQuiz();
+  } else {
+    renderQuizQuestion();
+  }
+}
+
+function finishQuiz(){
+  const total = LAWS.length;
+  const sortAcc = sortState.attempts ? Math.round((sortState.deck.length / sortState.attempts) * 100) : 100;
+  const quizPct = Math.round((quizState.score / total) * 100);
+  const overall = Math.round((sortAcc + quizPct) / 2);
+
+  let badge;
+  if(overall >= 90) badge = "Osservatore Intelligente — raro esemplare";
+  else if(overall >= 70) badge = "Allievo Promettente del Prof. Cipolla";
+  else if(overall >= 45) badge = "Un po' Ingenuo, ma in buona fede";
+  else badge = "Attenzione: rischio quadrante in basso a sinistra";
+
+  document.getElementById('final-badge').textContent = badge;
+  document.getElementById('final-score').textContent =
+    `Smistamento: ${sortAcc}% precisione · Interrogazione: ${quizState.score}/${total} corrette`;
+
+  const recap = document.getElementById('laws-recap');
+  recap.innerHTML = LAWS.map(l=>`<div class="law-line"><b>Legge ${l.n}.</b> ${l.law}</div>`).join('');
+
+  goTo('screen-final');
+}
+
+function restartAll(){
+  sortState = { deck:[], selectedIdx:null, correctCount:0, attempts:0 };
+  quizState = { idx:0, score:0, answered:false };
+  goTo('screen-intro');
+}
+</script>
+</body>
+</html>
