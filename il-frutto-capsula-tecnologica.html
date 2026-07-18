@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Frutto — Sistema di Deployment per Payload Genetico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;600;800;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F4F0;
+    --bg-raised:#EAE8E3;
+    --ink:#111111;
+    --red:#E61919;
+    --green:#3F5730;
+    --line:rgba(17,17,17,0.18);
+    --line-strong:#111111;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Inter', sans-serif;
+    --display:'Archivo Black', sans-serif;
+    --serif:'Playfair Display', serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{ color:inherit; }
+
+  :focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
+
+  /* ===== TOP BAR ===== */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:var(--bg);
+    border-bottom:2px solid var(--line-strong);
+  }
+  .doc-meta{
+    display:flex; flex-wrap:wrap; gap:6px 18px; justify-content:space-between;
+    font-family:var(--mono); font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;
+    padding:8px 20px; border-bottom:1px solid var(--line);
+  }
+  .doc-meta span{ white-space:nowrap; }
+  .toc{
+    display:flex; flex-wrap:wrap; gap:0;
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase;
+  }
+  .toc a{
+    padding:9px 16px; text-decoration:none; border-right:1px solid var(--line);
+    transition:background .15s ease, color .15s ease;
+  }
+  .toc a:hover{ background:var(--ink); color:var(--bg); }
+
+  /* ===== HERO ===== */
+  .hero{
+    position:relative;
+    padding:clamp(48px,9vw,110px) 20px clamp(40px,6vw,72px);
+    max-width:1180px; margin:0 auto;
+  }
+  .hero::before, .hero::after{
+    content:"+"; position:absolute; font-family:var(--mono); font-size:1.4rem; color:var(--line-strong); opacity:.35;
+  }
+  .hero::before{ top:24px; left:16px; }
+  .hero::after{ top:24px; right:16px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--red); margin-bottom:18px; display:block;
+  }
+  h1.title{
+    font-family:var(--display); text-transform:uppercase;
+    font-size:clamp(3.2rem,11vw,8.5rem); line-height:0.86; letter-spacing:-0.02em;
+  }
+  .subtitle{
+    font-family:var(--sans); font-weight:900; text-transform:uppercase;
+    font-size:clamp(1.05rem,2.6vw,1.7rem); letter-spacing:-0.01em;
+    margin-top:14px; max-width:20ch;
+  }
+  .lede{
+    margin-top:34px; max-width:62ch; font-size:1.05rem; color:#2a2a2a;
+  }
+  .lede strong{ color:var(--ink); font-weight:600; }
+
+  /* ===== STAT ROW ===== */
+  .stats{
+    max-width:1180px; margin:0 auto; padding:0 20px 8px;
+  }
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line-strong); border:1px solid var(--line-strong);
+  }
+  .stat-cell{
+    background:var(--bg); padding:22px 20px;
+  }
+  .stat-num{
+    font-family:var(--mono); font-weight:600; font-size:clamp(1.5rem,3vw,2.1rem);
+  }
+  .stat-label{
+    font-size:0.85rem; color:#3a3a3a; margin-top:8px;
+  }
+  @media (max-width:720px){ .stat-grid{ grid-template-columns:1fr; } }
+
+  /* ===== SECTION SHELL ===== */
+  section.block{
+    max-width:1180px; margin:0 auto; padding:clamp(56px,7vw,96px) 20px;
+    border-top:1px solid var(--line-strong);
+  }
+  .block-head{
+    display:flex; align-items:baseline; gap:16px; margin-bottom:34px; flex-wrap:wrap;
+  }
+  .block-num{
+    font-family:var(--mono); font-size:0.85rem; color:var(--red);
+  }
+  h2.block-title{
+    font-family:var(--sans); font-weight:900; text-transform:uppercase;
+    font-size:clamp(1.6rem,4vw,2.6rem); letter-spacing:-0.01em;
+  }
+  .block-intro{ max-width:66ch; color:#2a2a2a; margin-bottom:36px; }
+
+  /* ===== ANATOMY DIAGRAM ===== */
+  .anatomy-wrap{
+    display:grid; grid-template-columns:1.1fr 1fr; gap:1px;
+    background:var(--line-strong); border:1px solid var(--line-strong);
+  }
+  @media (max-width:860px){ .anatomy-wrap{ grid-template-columns:1fr; } }
+  .anatomy-svg-cell{ background:var(--bg-raised); padding:20px; }
+  .anatomy-svg-cell svg{ width:100%; height:auto; display:block; }
+  .anatomy-panel-cell{ background:var(--bg); padding:26px; display:flex; flex-direction:column; }
+
+  .layer-buttons{ display:flex; flex-wrap:wrap; gap:1px; background:var(--line-strong); border:1px solid var(--line-strong); margin-bottom:20px; }
+  .layer-btn{
+    flex:1 1 auto; min-width:120px;
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase;
+    background:var(--bg); color:var(--ink); border:none; padding:12px 10px; cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .layer-btn:hover{ background:var(--bg-raised); }
+  .layer-btn[aria-pressed="true"]{ background:var(--ink); color:var(--bg); }
+  .layer-btn[aria-pressed="true"][data-layer="seme"]{ background:var(--green); }
+
+  .readout{ font-family:var(--mono); font-size:0.8rem; }
+  .readout .rk{ color:var(--red); }
+  .readout dt{ margin-top:14px; color:var(--red); letter-spacing:0.05em; }
+  .anatomy-panel-cell dl dt:first-child{ margin-top:0; }
+  .readout dd{ margin-top:4px; color:#1c1c1c; font-family:var(--sans); font-size:0.92rem; line-height:1.55; }
+  .latin{ font-family:var(--serif); font-style:italic; color:#3a3a3a; }
+
+  .shape{ transition:stroke .2s ease, stroke-width .2s ease; cursor:pointer; }
+  .shape.active{ stroke:var(--red); stroke-width:4; }
+  .shape.active[data-layer="seme"]{ stroke:var(--green); }
+  .badge-num{ transition:fill .2s ease; }
+  .leader.active .badge-circle{ fill:var(--red); }
+  .leader.active[data-layer="seme"] .badge-circle{ fill:var(--green); }
+  .leader.active .badge-num{ fill:var(--bg); }
+  .leader .badge-circle{ transition:fill .2s ease; }
+
+  /* ===== SYSTEMS (details/summary) ===== */
+  .systems{ display:grid; gap:1px; background:var(--line-strong); border:1px solid var(--line-strong); }
+  details.system{ background:var(--bg); }
+  details.system > summary{
+    list-style:none; cursor:pointer; padding:20px 22px;
+    display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:18px;
+  }
+  details.system > summary::-webkit-details-marker{ display:none; }
+  details.system > summary::before{ content:"[+]"; font-family:var(--mono); color:var(--red); font-size:0.8rem; }
+  details.system[open] > summary::before{ content:"[–]"; }
+  .sys-id{ font-family:var(--mono); font-size:0.75rem; color:var(--red); }
+  .sys-name{ font-family:var(--sans); font-weight:800; text-transform:uppercase; font-size:1.02rem; }
+  .sys-example{ font-family:var(--serif); font-style:italic; font-size:0.9rem; color:#3a3a3a; text-align:right; }
+  .sys-body{ padding:0 22px 26px; max-width:70ch; }
+  .sys-body dt{ font-family:var(--mono); font-size:0.7rem; color:var(--red); letter-spacing:0.05em; margin-top:14px; }
+  .sys-body dt:first-child{ margin-top:0; }
+  .sys-body dd{ margin-top:4px; color:#1c1c1c; }
+  @media (max-width:640px){
+    details.system > summary{ grid-template-columns:auto 1fr; }
+    .sys-example{ grid-column:1 / -1; text-align:left; }
+  }
+
+  /* ===== HOSTILE PATH ===== */
+  .path-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line-strong); border:1px solid var(--line-strong);
+  }
+  @media (max-width:900px){ .path-grid{ grid-template-columns:1fr; } }
+  .phase{ background:var(--bg); padding:22px 20px; position:relative; }
+  .phase-tag{ font-family:var(--mono); font-size:0.7rem; color:var(--red); letter-spacing:0.05em; }
+  .phase-title{ font-family:var(--sans); font-weight:800; text-transform:uppercase; font-size:1rem; margin-top:8px; }
+  .phase-body{ font-size:0.88rem; color:#2a2a2a; margin-top:10px; }
+  .phase-risk{ font-family:var(--mono); font-size:0.72rem; color:var(--red); margin-top:12px; }
+  .phase:not(:last-child)::after{
+    content:"→"; position:absolute; top:20px; right:-13px; font-family:var(--mono);
+    background:var(--bg); padding:0 2px; z-index:2; color:var(--ink);
+  }
+  @media (max-width:900px){ .phase:not(:last-child)::after{ content:"↓"; top:auto; bottom:-13px; right:20px; } }
+
+  /* ===== CLOSING ===== */
+  .closing{ max-width:78ch; }
+  .closing p{ font-size:1.05rem; color:#242424; margin-bottom:16px; }
+  .closing p:last-of-type{ margin-bottom:0; }
+  .fact-line{ font-family:var(--mono); font-size:0.8rem; color:var(--red); margin-top:26px; letter-spacing:0.02em; }
+
+  footer{
+    border-top:2px solid var(--line-strong);
+    font-family:var(--mono); font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;
+    padding:18px 20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; color:#3a3a3a;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="doc-meta">
+    <span>DOC ID: BIO-FRUCT-01</span>
+    <span>REV 1.0</span>
+    <span>CLASSIFICAZIONE: NON RISERVATO</span>
+    <span>CAMPO: BIOLOGIA EVOLUTIVA / SISTEMI DI DISPERSIONE</span>
+  </div>
+  <nav class="toc" aria-label="Indice del documento">
+    <a href="#briefing">00 BRIEFING</a>
+    <a href="#anatomia">01 ANATOMIA</a>
+    <a href="#sistemi">02 SISTEMI</a>
+    <a href="#percorso">03 PERCORSO</a>
+    <a href="#chiusura">04 CHIUSURA</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <span class="eyebrow">Dossier tecnico // Ingegneria evolutiva</span>
+  <h1 class="title">Il Frutto</h1>
+  <p class="subtitle">Sistema di deployment per payload genetico</p>
+  <p class="lede">
+    Una pianta non può camminare fino a un buon posto per far crescere i propri figli.
+    Deve <strong>progettare un veicolo</strong> che porti il proprio materiale genetico
+    fuori dal proprio raggio d'azione, attraverso un ambiente ostile fatto di predatori,
+    disidratazione, competizione e caso — e farlo atterrare, integro, nel punto e nel
+    momento giusto. Quel veicolo è il frutto. Questo dossier lo tratta come quello che è:
+    <strong>una capsula ingegnerizzata da centoquaranta milioni di anni di prove sul campo</strong>.
+  </p>
+</header>
+
+<div class="stats">
+  <div class="stat-grid">
+    <div class="stat-cell">
+      <div class="stat-num">FINO A ~1–2M</div>
+      <div class="stat-label">semi prodotti in una singola capsula, in alcune specie di orchidee tropicali</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">&lt; 1%</div>
+      <div class="stat-label">tasso medio di sopravvivenza dei semi fino allo stadio di pianta adulta, in molte specie</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">~130 MYA</div>
+      <div class="stat-label">comparsa delle prime angiosperme (piante a fiore) nel Cretaceo — inizio del programma</div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <section class="block" id="briefing">
+    <div class="block-head">
+      <span class="block-num">00</span>
+      <h2 class="block-title">Il problema ingegneristico</h2>
+    </div>
+    <p class="block-intro">
+      Ogni pianta madre affronta lo stesso vincolo: i propri semi, se cadono e germogliano
+      troppo vicino, competono con lei per luce, acqua e nutrienti — e spesso perdono.
+      Serve quindi un sistema che risolva contemporaneamente quattro requisiti: protezione
+      del payload, propulsione a distanza, un meccanismo di sicurezza contro la germinazione
+      prematura, e — quando possibile — reclutamento di un vettore esterno che faccia parte
+      del lavoro gratis, o quasi. Il frutto è la risposta evolutiva a questo brief. Le sezioni
+      seguenti la analizzano componente per componente.
+    </p>
+  </section>
+
+  <section class="block" id="anatomia">
+    <div class="block-head">
+      <span class="block-num">01</span>
+      <h2 class="block-title">Anatomia della capsula</h2>
+    </div>
+    <p class="block-intro">
+      Sezione trasversale schematica di una drupa (es. pesca, ciliegia, susina) — il modello
+      di frutto in cui gli strati sono più facili da distinguere. Seleziona uno strato per
+      leggerne la scheda tecnica.
+    </p>
+
+    <div class="anatomy-wrap">
+      <div class="anatomy-svg-cell">
+        <svg viewBox="0 0 500 500" role="img" aria-label="Diagramma della sezione trasversale di un frutto a strati">
+          <circle id="shape-epicarpo" class="shape" data-layer="epicarpo" cx="250" cy="250" r="170" fill="#DCD9D0" stroke="#111111" stroke-width="2"></circle>
+          <circle id="shape-mesocarpo" class="shape" data-layer="mesocarpo" cx="250" cy="250" r="135" fill="#EBD9A8" stroke="#111111" stroke-width="2"></circle>
+          <circle id="shape-endocarpo" class="shape" data-layer="endocarpo" cx="250" cy="250" r="65" fill="#5B4530" stroke="#111111" stroke-width="2"></circle>
+          <circle id="shape-seme" class="shape" data-layer="seme" cx="250" cy="250" r="35" fill="#3F5730" stroke="#111111" stroke-width="2"></circle>
+
+          <g class="leader" data-layer="epicarpo" id="leader-epicarpo">
+            <line x1="380.2" y1="140.7" x2="433.8" y2="95.7" stroke="#111111" stroke-width="1"></line>
+            <circle cx="380.2" cy="140.7" r="3" fill="#111111"></circle>
+            <circle class="badge-circle" cx="433.8" cy="95.7" r="14" fill="#F4F4F0" stroke="#111111" stroke-width="2"></circle>
+            <text class="badge-num" x="433.8" y="99.7" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">01</text>
+            <text x="443.8" y="100" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">EPICARPO</text>
+          </g>
+
+          <g class="leader" data-layer="mesocarpo" id="leader-mesocarpo">
+            <line x1="353.4" y1="336.8" x2="410.9" y2="385.0" stroke="#111111" stroke-width="1"></line>
+            <circle cx="353.4" cy="336.8" r="3" fill="#111111"></circle>
+            <circle class="badge-circle" cx="410.9" cy="385.0" r="14" fill="#F4F4F0" stroke="#111111" stroke-width="2"></circle>
+            <text class="badge-num" x="410.9" y="389.0" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">02</text>
+            <text x="420.9" y="389.3" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">MESOCARPO</text>
+          </g>
+
+          <g class="leader" data-layer="endocarpo" id="leader-endocarpo">
+            <line x1="200.2" y1="208.2" x2="81.5" y2="108.5" stroke="#111111" stroke-width="1"></line>
+            <circle cx="200.2" cy="208.2" r="3" fill="#111111"></circle>
+            <circle class="badge-circle" cx="81.5" cy="108.5" r="14" fill="#F4F4F0" stroke="#111111" stroke-width="2"></circle>
+            <text class="badge-num" x="81.5" y="112.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">03</text>
+            <text x="71.5" y="112.8" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">ENDOCARPO</text>
+          </g>
+
+          <g class="leader" data-layer="seme" id="leader-seme">
+            <line x1="223.2" y1="272.5" x2="81.5" y2="391.5" stroke="#111111" stroke-width="1"></line>
+            <circle cx="223.2" cy="272.5" r="3" fill="#111111"></circle>
+            <circle class="badge-circle" cx="81.5" cy="391.5" r="14" fill="#F4F4F0" stroke="#111111" stroke-width="2"></circle>
+            <text class="badge-num" x="81.5" y="395.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">04</text>
+            <text x="71.5" y="395.8" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12" fill="#111111">SEME</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="anatomy-panel-cell">
+        <div class="layer-buttons" role="group" aria-label="Seleziona uno strato della capsula">
+          <button class="layer-btn" type="button" data-layer="epicarpo" aria-pressed="true">01 Epicarpo</button>
+          <button class="layer-btn" type="button" data-layer="mesocarpo" aria-pressed="false">02 Mesocarpo</button>
+          <button class="layer-btn" type="button" data-layer="endocarpo" aria-pressed="false">03 Endocarpo</button>
+          <button class="layer-btn" type="button" data-layer="seme" aria-pressed="false">04 Seme</button>
+        </div>
+
+        <dl class="readout" id="readout">
+          <!-- popolato via JS -->
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="sistemi">
+    <div class="block-head">
+      <span class="block-num">02</span>
+      <h2 class="block-title">Catalogo dei sistemi di deployment</h2>
+    </div>
+    <p class="block-intro">
+      Cinque strategie distinte, ciascuna ottimizzata per un vincolo diverso. Apri una scheda
+      per i dettagli tecnici.
+    </p>
+
+    <div class="systems">
+
+      <details class="system">
+        <summary>
+          <span class="sys-id">SYS 01</span>
+          <span class="sys-name">Trasporto biologico</span>
+          <span class="sys-example">Prunus avium, Vaccinium spp.</span>
+        </summary>
+        <dl class="sys-body">
+          <dt>Meccanismo</dt>
+          <dd>La polpa zuccherina è il compenso pagato a un vettore animale. Il seme, protetto
+          da un endocarpo resistente ai succhi digestivi, attraversa l'animale indenne e viene
+          rilasciato lontano dalla pianta madre — spesso già circondato da un pacchetto di
+          fertilizzante naturale.</dd>
+          <dt>Ostacolo superato</dt>
+          <dd>Distanza dalla pianta madre, unita a una fertilizzazione simultanea del punto di
+          atterraggio.</dd>
+          <dt>Analogo tecnologico</dt>
+          <dd>Un sistema di consegna a incentivo: il corriere viene pagato in natura, non in
+          denaro.</dd>
+        </dl>
+      </details>
+
+      <details class="system">
+        <summary>
+          <span class="sys-id">SYS 02</span>
+          <span class="sys-name">Dispersione aerea</span>
+          <span class="sys-example">Acer spp., Taraxacum officinale</span>
+        </summary>
+        <dl class="sys-body">
+          <dt>Meccanismo</dt>
+          <dd>Il payload viene alleggerito al minimo indispensabile e dotato di superfici che
+          aumentano la resistenza all'aria — l'ala rotante della samara dell'acero, il pappo
+          piumoso del tarassaco — per massimizzare il tempo di volo e la distanza percorsa.</dd>
+          <dt>Ostacolo superato</dt>
+          <dd>Peso e distanza, senza dover negoziare con nessun collaboratore biologico.</dd>
+          <dt>Analogo tecnologico</dt>
+          <dd>L'autorotazione — lo stesso principio usato nei rotori d'emergenza degli
+          elicotteri, testato dall'acero molti milioni di anni prima.</dd>
+        </dl>
+      </details>
+
+      <details class="system">
+        <summary>
+          <span class="sys-id">SYS 03</span>
+          <span class="sys-name">Lancio balistico</span>
+          <span class="sys-example">Ecballium elaterium, Impatiens spp.</span>
+        </summary>
+        <dl class="sys-body">
+          <dt>Meccanismo</dt>
+          <dd>Pressione osmotica accumulata all'interno della parete del frutto fino a superare
+          la soglia di rottura strutturale: la capsula si apre di scatto ed espelle i semi a
+          distanza, in una frazione di secondo.</dd>
+          <dt>Ostacolo superato</dt>
+          <dd>Dispersione rapida e indipendente da vento o animali, utile quando nessuno dei due
+          è disponibile.</dd>
+          <dt>Analogo tecnologico</dt>
+          <dd>Un sistema di espulsione a molla — la stessa logica di una catapulta a
+          pressione.</dd>
+        </dl>
+      </details>
+
+      <details class="system">
+        <summary>
+          <span class="sys-id">SYS 04</span>
+          <span class="sys-name">Idrodinamico</span>
+          <span class="sys-example">Cocos nucifera</span>
+        </summary>
+        <dl class="sys-body">
+          <dt>Meccanismo</dt>
+          <dd>Mesocarpo fibroso, stagno e a bassa densità: garantisce il galleggiamento.
+          Endocarpo legnoso e impermeabile: protegge il payload per mesi in acqua salata, anche
+          per migliaia di chilometri.</dd>
+          <dt>Ostacolo superato</dt>
+          <dd>Distanze oceaniche — il sistema che ha permesso alla noce di cocco di colonizzare
+          isole mai toccate da altre piante.</dd>
+          <dt>Analogo tecnologico</dt>
+          <dd>Uno scafo stagno: la stessa architettura di una capsula di sopravvivenza
+          galleggiante.</dd>
+        </dl>
+      </details>
+
+      <details class="system">
+        <summary>
+          <span class="sys-id">SYS 05</span>
+          <span class="sys-name">Aggancio meccanico</span>
+          <span class="sys-example">Arctium spp.</span>
+        </summary>
+        <dl class="sys-body">
+          <dt>Meccanismo</dt>
+          <dd>Uncini rigidi sulla superficie del frutto si agganciano passivamente a pelo o
+          tessuti che passano nelle vicinanze. Nessun costo energetico per la pianta, nessuna
+          ricompensa da offrire.</dd>
+          <dt>Ostacolo superato</dt>
+          <dd>Trasporto a costo pressoché zero, senza dover produrre zuccheri, ali o
+          esplosivi.</dd>
+          <dt>Analogo tecnologico</dt>
+          <dd>Il velcro — inventato nel 1941 dall'ingegnere svizzero Georges de Mestral dopo
+          aver osservato al microscopio i semi di bardana rimasti attaccati al pelo del suo
+          cane.</dd>
+        </dl>
+      </details>
+
+    </div>
+  </section>
+
+  <section class="block" id="percorso">
+    <div class="block-head">
+      <span class="block-num">03</span>
+      <h2 class="block-title">Il percorso ostile</h2>
+    </div>
+    <p class="block-intro">
+      Anche il miglior sistema di trasporto non basta, se il payload germoglia nel momento
+      sbagliato. Quattro fasi, dal distacco alla nuova pianta.
+    </p>
+
+    <div class="path-grid">
+      <div class="phase">
+        <div class="phase-tag">FASE 0</div>
+        <div class="phase-title">Sgancio</div>
+        <div class="phase-body">Il frutto si stacca dalla pianta madre e il sistema di
+        trasporto scelto entra in funzione.</div>
+        <div class="phase-risk">RISCHIO: atterraggio troppo vicino → competizione diretta con il genitore</div>
+      </div>
+      <div class="phase">
+        <div class="phase-tag">FASE 1</div>
+        <div class="phase-title">Transito</div>
+        <div class="phase-body">Il payload attraversa l'ambiente esposto a predazione,
+        disidratazione e raggi UV, protetto dagli strati della capsula.</div>
+        <div class="phase-risk">RISCHIO: predazione totale = perdita del payload</div>
+      </div>
+      <div class="phase">
+        <div class="phase-tag">FASE 2</div>
+        <div class="phase-title">Dormienza</div>
+        <div class="phase-body">Un sistema di sicurezza integrato impedisce la germinazione
+        immediata: alcuni semi richiedono abrasione meccanica, freddo prolungato, o persino il
+        calore di un incendio, prima di autorizzare l'avvio.</div>
+        <div class="phase-risk">RISCHIO: germinazione prematura = morte al primo gelo</div>
+      </div>
+      <div class="phase">
+        <div class="phase-tag">FASE 3</div>
+        <div class="phase-title">Deployment</div>
+        <div class="phase-body">Condizioni corrette rilevate — umidità, temperatura, luce. Il
+        case del seme si apre, la radice primaria ancora il payload al suolo.</div>
+        <div class="phase-risk">ESITO: germinazione — fine missione, inizio della pianta</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="chiusura">
+    <div class="block-head">
+      <span class="block-num">04</span>
+      <h2 class="block-title">Nota di chiusura</h2>
+    </div>
+    <div class="closing">
+      <p>
+        Prima che l'ingegneria umana inventasse il paracadute, il velcro, lo scafo stagno e il
+        sistema di espulsione a molla, l'evoluzione aveva già risolto lo stesso identico
+        problema: come far attraversare a un carico prezioso e fragile una distanza ostile,
+        senza che chi lo spedisce possa accompagnarlo o correggerne la rotta in volo.
+      </p>
+      <p>
+        Il frutto non è una metafora della tecnologia. È tecnologia — selezionata non da un
+        ufficio progettazione, ma da milioni di generazioni in cui ogni variante meno efficiente
+        semplicemente non ha lasciato eredi. Guardarlo così non toglie nulla al gusto di una
+        ciliegia. Aggiunge solo un secondo livello di lettura, sempre disponibile, a ogni frutto
+        che si ha in mano.
+      </p>
+      <div class="fact-line">// FINE DOSSIER — VALIDO SU CAMPO DA CIRCA 130 MILIONI DI ANNI</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>DOC BIO-FRUCT-01 · REV 1.0</span>
+  <span>Riproduzione consentita a scopo didattico</span>
+</footer>
+
+<script>
+(function(){
+  var DATA = {
+    epicarpo: {
+      title: "STRATO 01 // EPICARPO",
+      fn: "Scudo esterno",
+      mat: "Cutina, cere epicuticolari, pigmenti",
+      ruolo: "Barriera fisica e chimica contro raggi UV, patogeni, disidratazione e urti meccanici. È il primo punto di contatto con l'ambiente ostile durante l'intero transito."
+    },
+    mesocarpo: {
+      title: "STRATO 02 // MESOCARPO",
+      fn: "Sistema di propulsione biologica (ricompensa)",
+      mat: "Zuccheri, acqua, pigmenti antociani, aromi volatili",
+      ruolo: "Il pagamento offerto a un vettore biologico in cambio del trasporto: colore e profumo segnalano che il payload è pronto al ritiro, gli zuccheri ricompensano chi lo consuma e lo disperde altrove."
+    },
+    endocarpo: {
+      title: "STRATO 03 // ENDOCARPO",
+      fn: "Scocca di protezione secondaria",
+      mat: "Lignina (spesso legnosa nelle drupe: pesca, ciliegia, susina)",
+      ruolo: "Guscio rigido interno che protegge il payload dalla masticazione e dagli acidi digestivi del vettore, garantendo che il seme attraversi il sistema di trasporto intatto."
+    },
+    seme: {
+      title: "STRATO 04 // SEME — PAYLOAD",
+      fn: "Nucleo genetico",
+      mat: "Embrione + riserve nutritive (endosperma / cotiledoni)",
+      ruolo: "Il carico utile della missione: contiene sia le istruzioni genetiche sia la riserva energetica necessaria alla germinazione, prima che la nuova pianta diventi autosufficiente con la fotosintesi."
+    }
+  };
+
+  var buttons = document.querySelectorAll('.layer-btn');
+  var readout = document.getElementById('readout');
+  var shapes = document.querySelectorAll('.shape');
+  var leaders = document.querySelectorAll('.leader');
+
+  function render(key){
+    var d = DATA[key];
+    readout.innerHTML =
+      '<dt style="color:var(--ink);">' + d.title + '</dt>' +
+      '<dt>Funzione</dt><dd>' + d.fn + '</dd>' +
+      '<dt>Materiale</dt><dd>' + d.mat + '</dd>' +
+      '<dt>Ruolo nella missione</dt><dd>' + d.ruolo + '</dd>';
+  }
+
+  function setActive(key){
+    buttons.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.layer === key ? 'true' : 'false'); });
+    shapes.forEach(function(s){ s.classList.toggle('active', s.dataset.layer === key); });
+    leaders.forEach(function(l){ l.classList.toggle('active', l.dataset.layer === key); });
+    render(key);
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){ setActive(b.dataset.layer); });
+  });
+  shapes.forEach(function(s){
+    s.addEventListener('click', function(){ setActive(s.dataset.layer); });
+  });
+  leaders.forEach(function(l){
+    l.addEventListener('click', function(){ setActive(l.dataset.layer); });
+    l.style.cursor = 'pointer';
+  });
+
+  setActive('epicarpo');
+})();
+</script>
+
+</body>
+</html>
