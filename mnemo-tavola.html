@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tavola periodica a memoria — Mnemotecniche per i gruppi principali</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5EFE3;
+    --ink:#1C1710;
+    --g1:#E08A3C; --i1:#382208;
+    --g2:#E4C478; --i2:#3A2D0E;
+    --g3:#A3B564; --i3:#222A0E;
+    --g4:#74A892; --i4:#0E2620;
+    --g5:#7C9CBF; --i5:#0F1E2E;
+    --g6:#A78BC2; --i6:#211230;
+    --g7:#CD7A6D; --i7:#341210;
+    --g8:#9AA1A8; --i8:#181D22;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Archivo',Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    line-height:1.5;
+  }
+  ::selection{background:var(--ink);color:var(--paper);}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:18px 40px;border-bottom:1px solid var(--ink);
+    text-transform:uppercase;letter-spacing:.18em;font-size:11px;font-weight:600;
+  }
+  .topbar nav a{
+    color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink);
+    margin-left:28px;padding-bottom:2px;transition:color .18s ease;
+  }
+  .topbar nav a:hover{color:transparent;} /* ghost hover: resta solo la riga */
+
+  /* ---------- hero ---------- */
+  .hero{padding:64px 40px 56px;border-bottom:1px solid var(--ink);}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:.22em;font-size:11px;font-weight:600;
+    display:flex;justify-content:space-between;margin-bottom:28px;
+  }
+  h1{
+    font-stretch:122%;font-weight:860;text-transform:uppercase;
+    font-size:clamp(52px,9.6vw,148px);line-height:.87;letter-spacing:-.015em;
+  }
+  h1 .thin{font-weight:290;}
+  .hero p.lead{
+    max-width:760px;margin-top:34px;font-size:clamp(16px,1.5vw,20px);line-height:1.45;font-weight:450;
+  }
+  .hero p.lead b{font-weight:750;}
+  .meta-strip{
+    display:flex;gap:0;margin-top:44px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);
+  }
+  .meta-strip div{
+    flex:1;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.16em;font-weight:600;
+    border-right:1px solid var(--ink);
+  }
+  .meta-strip div:last-child{border-right:none;}
+  .meta-strip .mono{font-size:15px;font-weight:600;letter-spacing:0;display:block;margin-top:2px;}
+
+  /* ---------- section headers ---------- */
+  .sec-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:22px 40px;border-bottom:1px solid var(--ink);
+  }
+  .sec-head h2{
+    font-stretch:120%;font-weight:830;text-transform:uppercase;
+    font-size:clamp(26px,3.6vw,52px);line-height:.95;letter-spacing:-.01em;
+  }
+  .sec-head span{font-size:11px;text-transform:uppercase;letter-spacing:.18em;font-weight:600;}
+
+  /* ---------- mnemonic bands (color fields) ---------- */
+  .band{
+    display:grid;grid-template-columns:minmax(180px,26vw) 1fr;
+    background:var(--bg);color:var(--ink2);
+    border-bottom:1px solid var(--ink2);
+  }
+  .band-num{
+    font-stretch:125%;font-weight:900;line-height:.78;
+    font-size:clamp(90px,15vw,220px);
+    padding:34px 0 30px 40px;
+    border-right:1px solid color-mix(in srgb,var(--ink2) 45%,transparent);
+    align-self:stretch;display:flex;align-items:flex-start;
+  }
+  .band-body{padding:34px 40px 36px;}
+  .band-tag{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;
+    padding-bottom:14px;margin-bottom:18px;
+    border-bottom:1px solid color-mix(in srgb,var(--ink2) 45%,transparent);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .phrase{
+    font-stretch:118%;font-weight:780;
+    font-size:clamp(25px,3.3vw,46px);line-height:1.14;letter-spacing:-.005em;
+    max-width:20ch;
+  }
+  .phrase .h,.phrase .h2,.phrase .h3{
+    border-radius:2px;padding:.01em .09em;margin:0 .01em;
+    transition:transform .15s ease;
+    display:inline-block;
+  }
+  .phrase .h{background:var(--ink2);color:var(--bg);}
+  .phrase .h2{box-shadow:inset 0 0 0 .06em var(--ink2);}
+  .phrase:hover .h{transform:translateY(-.06em);}
+  .phrase .w{white-space:nowrap;}
+  .band-note{
+    margin-top:16px;font-size:13px;max-width:64ch;
+    color:color-mix(in srgb,var(--ink2) 88%,transparent);
+  }
+  .band-note b{font-weight:750;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;
+    border:1px solid var(--ink2);padding:6px 10px 5px;border-radius:2px;
+    cursor:default;transition:background .15s ease,color .15s ease;
+    white-space:nowrap;
+  }
+  .chip b{font-weight:600;}
+  .chip:hover{background:var(--ink2);color:var(--bg);}
+
+  /* ---------- periodic table ---------- */
+  .pt-wrap{padding:34px 40px 44px;overflow-x:auto;}
+  .pt{
+    display:grid;grid-template-columns:repeat(18,minmax(46px,1fr));
+    gap:1px;background:var(--ink);border:1px solid var(--ink);
+    min-width:940px;
+  }
+  .pt .gh{
+    background:var(--paper);padding:8px 6px;text-align:center;
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  }
+  .pt .gh .mono{display:block;font-size:9px;font-weight:500;opacity:.6;margin-top:1px;}
+  .pt .el{
+    aspect-ratio:1/1.06;position:relative;cursor:pointer;
+    background:var(--bg);color:var(--ink2);
+    display:flex;align-items:center;justify-content:center;
+    transition:background .12s ease,color .12s ease;
+  }
+  .pt .el .z{position:absolute;top:3px;left:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;}
+  .pt .el .s{font-weight:800;font-stretch:115%;font-size:clamp(12px,1.5vw,19px);line-height:1;}
+  .pt .el:hover{background:var(--ink2);color:var(--bg);}
+  .pt .empty{background:var(--paper);}
+  .pt .voidcell{background:var(--paper);}
+  .pt .frow{aspect-ratio:auto;padding:9px 10px;}
+  .pt .gapcell{
+    background:repeating-linear-gradient(45deg,var(--paper) 0 6px,#EDE5D3 6px 7px);
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;
+    color:#8A8070;padding:10px;
+  }
+  @keyframes flash{
+    0%{box-shadow:inset 0 0 0 3px var(--ink);}
+    100%{box-shadow:inset 0 0 0 0 transparent;}
+  }
+  .pt .el.flash{animation:flash .9s ease-out 2;}
+  .pt-legend{
+    display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;
+    font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;
+  }
+  .pt-legend span{display:flex;align-items:center;gap:7px;}
+  .pt-legend i{width:12px;height:12px;border:1px solid var(--ink);display:inline-block;}
+  .pt-note{margin-top:14px;font-size:12.5px;color:#6B6252;max-width:100ch;}
+
+  /* ---------- detail panel (hover reveal) ---------- */
+  #panel{
+    position:fixed;right:36px;top:50%;transform:translateY(-50%) translateX(8px);
+    width:320px;background:var(--ink);color:var(--paper);
+    padding:22px 24px 24px;z-index:50;pointer-events:none;
+    opacity:0;transition:opacity .16s ease,transform .16s ease;
+  }
+  #panel.on{opacity:1;transform:translateY(-50%) translateX(0);}
+  #panel .p-g{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;display:flex;justify-content:space-between;}
+  #panel .p-sym{font-stretch:125%;font-weight:900;font-size:86px;line-height:.9;margin:12px 0 4px;}
+  #panel .p-name{font-size:19px;font-weight:650;}
+  #panel .p-z{font-family:'IBM Plex Mono',monospace;font-size:12px;opacity:.75;margin-top:2px;}
+  #panel .p-frag{
+    margin-top:16px;padding-top:14px;border-top:1px solid rgba(245,239,227,.35);
+    font-size:13px;line-height:1.45;
+  }
+  #panel .p-frag .h{background:var(--paper);color:var(--ink);padding:0 .12em;border-radius:2px;font-weight:700;}
+  #panel .p-frag .h2{box-shadow:inset 0 0 0 1px var(--paper);padding:0 .1em;border-radius:2px;font-weight:700;}
+  #panel .p-cur{
+    margin-top:12px;padding-top:12px;border-top:1px solid rgba(245,239,227,.35);
+    font-size:12.5px;line-height:1.5;opacity:.85;
+  }
+  #panel .p-close{
+    display:none;position:absolute;top:8px;right:10px;background:none;border:none;
+    color:var(--paper);font-size:22px;line-height:1;cursor:pointer;font-family:inherit;padding:4px 6px;
+  }
+
+  /* ---------- method ---------- */
+  .method{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--ink);}
+  .method article{padding:30px 40px 40px;border-right:1px solid var(--ink);}
+  .method article:last-child{border-right:none;}
+  .method .n{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+    display:block;margin-bottom:44px;
+  }
+  .method h3{
+    font-stretch:118%;font-weight:800;text-transform:uppercase;
+    font-size:clamp(19px,1.8vw,26px);line-height:1.05;margin-bottom:12px;
+  }
+  .method p{font-size:14px;line-height:1.55;color:#4A4234;}
+  .latin{
+    padding:22px 40px;border-bottom:1px solid var(--ink);
+    font-size:13px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+  }
+  .latin b{font-weight:750;text-transform:uppercase;letter-spacing:.14em;font-size:11px;}
+  .latin .mono{font-size:12px;border:1px solid var(--ink);padding:3px 8px;border-radius:2px;}
+
+  footer{
+    padding:20px 40px;display:flex;justify-content:space-between;
+    font-size:10px;text-transform:uppercase;letter-spacing:.16em;font-weight:600;color:#6B6252;
+  }
+
+  .scroll-hint{display:none;}
+  @media (max-width:900px){
+    html{-webkit-tap-highlight-color:transparent;}
+    body{overflow-x:hidden;}
+    .topbar{padding:14px 16px;flex-wrap:wrap;gap:6px 0;}
+    .topbar nav a{margin-left:0;margin-right:16px;}
+    .hero,.sec-head,.pt-wrap,.latin{padding-left:16px;padding-right:16px;}
+    .hero{padding-top:46px;padding-bottom:42px;}
+    h1{font-size:clamp(44px,13.5vw,84px);}
+    .hero p.lead{font-size:16px;max-width:none;}
+    .eyebrow{margin-bottom:22px;font-size:10px;letter-spacing:.14em;}
+    .meta-strip{flex-wrap:wrap;}
+    .meta-strip div{flex:1 1 45%;border-bottom:1px solid var(--ink);padding:10px 12px;}
+    .sec-head{flex-direction:column;align-items:flex-start;gap:6px;padding-top:20px;padding-bottom:20px;}
+    .band{grid-template-columns:1fr;}
+    .band-num{
+      border-right:none;border-bottom:1px solid color-mix(in srgb,var(--ink2) 45%,transparent);
+      padding:16px 16px 4px;font-size:clamp(60px,17vw,110px);line-height:.8;
+    }
+    .band-body{padding:18px 16px 28px;}
+    .band-tag{padding-bottom:12px;margin-bottom:16px;font-size:10px;letter-spacing:.14em;}
+    .phrase{font-size:clamp(21px,6.2vw,32px);max-width:none;line-height:1.22;}
+    .chips{gap:6px;margin-top:18px;}
+    .chip{padding:8px 9px;font-size:11px;cursor:pointer;}
+    .band-note{font-size:12.5px;}
+    .pt-wrap{padding:18px 16px 30px;}
+    .scroll-hint{
+      display:block;font-size:10px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.18em;color:#8A8070;margin-bottom:10px;
+    }
+    .pt{min-width:880px;}
+    .pt-legend{font-size:9px;gap:10px 14px;}
+    .method{grid-template-columns:1fr;}
+    .method article{border-right:none;border-bottom:1px solid var(--ink);padding:24px 16px 30px;}
+    .method .n{margin-bottom:24px;}
+    .latin{gap:8px;}
+    #panel{
+      display:block;pointer-events:auto;
+      left:12px;right:12px;top:auto;bottom:12px;width:auto;
+      transform:translateY(calc(100% + 30px));opacity:1;
+      max-height:56vh;overflow-y:auto;
+      transition:transform .25s ease;
+    }
+    #panel.on{transform:translateY(0);}
+    #panel .p-close{display:block;}
+    #panel .p-g{padding-right:34px;}
+    footer{padding:16px;flex-direction:column;gap:6px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span>Mnemo·Tavola</span>
+  <nav>
+    <a href="#frasi">Le frasi</a>
+    <a href="#tavola">La tavola</a>
+    <a href="#metodo">Il metodo</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="eyebrow"><span>Mnemotecnica · Chimica</span><span>Gruppi principali I–VIII</span></div>
+  <h1>La tavola<br>periodica<br><span class="thin">a memoria</span></h1>
+  <p class="lead">Otto frasi assurde per otto colonne della tavola di Mendeleev. In ogni parola si nascondono le lettere del <b>simbolo chimico</b> — evidenziate qui una a una, anche quando sono distanti dentro la parola. L'occhio impara prima della memoria: dopo poche letture vedrai «Ruba» e penserai <b>Rb</b>, vedrai «Tallone» e penserai <b>Tl</b>. E più la scena è ridicola — un gallo indiano sul tallone, ossa di tè e pollo — più resta impressa.</p>
+  <div class="meta-strip">
+    <div>Gruppi coperti<span class="mono">I → VIII</span></div>
+    <div>Elementi<span class="mono">50</span></div>
+    <div>Frasi mnemoniche<span class="mono">8</span></div>
+    <div>Numerazione IUPAC<span class="mono">1 · 2 · 13–18</span></div>
+  </div>
+</header>
+
+<div class="sec-head" id="frasi">
+  <h2>Le frasi, lettera per lettera</h2>
+  <span>Le lettere evidenziate = il simbolo</span>
+</div>
+
+<!-- GRUPPO I -->
+<section class="band" style="--bg:var(--g1);--ink2:var(--i1)">
+  <div class="band-num">I</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo I · Metalli alcalini</span><span class="mono">IUPAC 1</span></div>
+    <p class="phrase"><span class="w"><span class="h">H</span>o</span> <span class="w"><span class="h">Li</span><span class="h2">Na</span></span> <span class="w"><span class="h">K</span>e</span> <span class="w"><span class="h">R</span>u<span class="h">b</span>a</span> <span class="w">il</span> <span class="w"><span class="h">C</span>e<span class="h">s</span>so</span> <span class="w">a</span> <span class="w"><span class="h">Fr</span>ancio</span></p>
+    <div class="chips">
+      <span class="chip" data-sym="H"><b>H</b> · 1 · Idrogeno</span>
+      <span class="chip" data-sym="Li"><b>Li</b> · 3 · Litio</span>
+      <span class="chip" data-sym="Na"><b>Na</b> · 11 · Sodio</span>
+      <span class="chip" data-sym="K"><b>K</b> · 19 · Potassio</span>
+      <span class="chip" data-sym="Rb"><b>Rb</b> · 37 · Rubidio</span>
+      <span class="chip" data-sym="Cs"><b>Cs</b> · 55 · Cesio</span>
+      <span class="chip" data-sym="Fr"><b>Fr</b> · 87 · Francio</span>
+    </div>
+    <p class="band-note"><b>Attenzione:</b> Na e K non vengono dal nome italiano ma dal latino — <i>natrium</i> e <i>kalium</i>. La frase te li regala gratis: «LiNa» e «Ke».</p>
+  </div>
+</section>
+
+<!-- GRUPPO II -->
+<section class="band" style="--bg:var(--g2);--ink2:var(--i2)">
+  <div class="band-num">II</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo II · Metalli alcalino-terrosi</span><span class="mono">IUPAC 2</span></div>
+    <p class="phrase"><span class="w"><span class="h">Be</span></span> <span class="w"><span class="h">M</span>anna<span class="h">g</span>ia</span> <span class="w">da</span> <span class="w">un</span> <span class="w"><span class="h">Ca</span>lcio</span> <span class="w">a</span> <span class="w">quello</span> <span class="w"><span class="h">S</span>t<span class="h">r</span>onzio</span> <span class="w">che</span> <span class="w"><span class="h">Ba</span><span class="h2">Ra</span></span></p>
+    <div class="chips">
+      <span class="chip" data-sym="Be"><b>Be</b> · 4 · Berillio</span>
+      <span class="chip" data-sym="Mg"><b>Mg</b> · 12 · Magnesio</span>
+      <span class="chip" data-sym="Ca"><b>Ca</b> · 20 · Calcio</span>
+      <span class="chip" data-sym="Sr"><b>Sr</b> · 38 · Stronzio</span>
+      <span class="chip" data-sym="Ba"><b>Ba</b> · 56 · Bario</span>
+      <span class="chip" data-sym="Ra"><b>Ra</b> · 88 · Radio</span>
+    </div>
+    <p class="band-note"><b>Mg</b> si nasconde dentro <i>Mannagia</i>: la <b>M</b> iniziale e la <b>g</b> in mezzo → <b>M</b>a<b>g</b>nesio. Il resto della parola è scenografia: più è teatrale, meglio si ricorda.</p>
+  </div>
+</section>
+
+<!-- GRUPPO III -->
+<section class="band" style="--bg:var(--g3);--ink2:var(--i3)">
+  <div class="band-num">III</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo III · Gruppo del boro</span><span class="mono">IUPAC 13</span></div>
+    <p class="phrase"><span class="w"><span class="h">B</span><span class="h2">Al</span>la</span> <span class="w">un</span> <span class="w"><span class="h">Ga</span>llo</span> <span class="w"><span class="h">In</span>diano</span> <span class="w">sul</span> <span class="w"><span class="h">T</span>a<span class="h">l</span>lone</span></p>
+    <div class="chips">
+      <span class="chip" data-sym="B"><b>B</b> · 5 · Boro</span>
+      <span class="chip" data-sym="Al"><b>Al</b> · 13 · Alluminio</span>
+      <span class="chip" data-sym="Ga"><b>Ga</b> · 31 · Gallio</span>
+      <span class="chip" data-sym="In"><b>In</b> · 49 · Indio</span>
+      <span class="chip" data-sym="Tl"><b>Tl</b> · 81 · Tallio</span>
+    </div>
+    <p class="band-note">Doppio colpo nella prima parola: «<b>B</b>-<b>Al</b>-la» contiene sia il Boro sia l'Alluminio. E nel <b>T</b>a<b>l</b>lone si nasconde il <b>Tl</b> — Tallio: la scena si commenta da sola.</p>
+  </div>
+</section>
+
+<!-- GRUPPO IV -->
+<section class="band" style="--bg:var(--g4);--ink2:var(--i4)">
+  <div class="band-num">IV</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo IV · Gruppo del carbonio</span><span class="mono">IUPAC 14</span></div>
+    <p class="phrase"><span class="w"><span class="h">C</span>arlo</span> <span class="w"><span class="h">Si</span></span> <span class="w"><span class="h">Ge</span>tta</span> <span class="w">in</span> <span class="w">uno</span> <span class="w"><span class="h">S</span>tag<span class="h">n</span>o</span> <span class="w">di</span> <span class="w"><span class="h">P</span>iom<span class="h">b</span>o</span></p>
+    <div class="chips">
+      <span class="chip" data-sym="C"><b>C</b> · 6 · Carbonio</span>
+      <span class="chip" data-sym="Si"><b>Si</b> · 14 · Silicio</span>
+      <span class="chip" data-sym="Ge"><b>Ge</b> · 32 · Germanio</span>
+      <span class="chip" data-sym="Sn"><b>Sn</b> · 50 · Stagno</span>
+      <span class="chip" data-sym="Pb"><b>Pb</b> · 82 · Piombo</span>
+    </div>
+    <p class="band-note">Le lettere di <b>Sn</b> e <b>Pb</b> sono distanti dentro la parola — <b>S</b>tag<b>n</b>o, <b>P</b>iom<b>b</b>o — perché i simboli arrivano dal latino: <i>stannum</i> e <i>plumbum</i>.</p>
+  </div>
+</section>
+
+<!-- GRUPPO V -->
+<section class="band" style="--bg:var(--g5);--ink2:var(--i5)">
+  <div class="band-num">V</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo V · Gruppo dell'azoto</span><span class="mono">IUPAC 15</span></div>
+    <p class="phrase"><span class="w"><span class="h">N</span>on</span> <span class="w"><span class="h">P</span>ortare</span> <span class="w"><span class="h">A</span>r<span class="h">s</span>enico</span> <span class="w"><span class="h">S</span>em<span class="h">b</span>ra</span> <span class="w"><span class="h">Bi</span>rra</span></p>
+    <div class="chips">
+      <span class="chip" data-sym="N"><b>N</b> · 7 · Azoto</span>
+      <span class="chip" data-sym="P"><b>P</b> · 15 · Fosforo</span>
+      <span class="chip" data-sym="As"><b>As</b> · 33 · Arsenico</span>
+      <span class="chip" data-sym="Sb"><b>Sb</b> · 51 · Antimonio</span>
+      <span class="chip" data-sym="Bi"><b>Bi</b> · 83 · Bismuto</span>
+    </div>
+    <p class="band-note"><b>As</b> e <b>Sb</b> hanno lettere distanti: <b>A</b>r<b>s</b>enico e <b>S</b>em<b>b</b>ra (Antimonio, dal latino <i>stibium</i>). E no, l'arsenico non è birra.</p>
+  </div>
+</section>
+
+<!-- GRUPPO VI -->
+<section class="band" style="--bg:var(--g6);--ink2:var(--i6)">
+  <div class="band-num">VI</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo VI · Gruppo dell'ossigeno · Calcogeni</span><span class="mono">IUPAC 16</span></div>
+    <p class="phrase"><span class="w"><span class="h">O</span><span class="h2">S</span><span class="h">Se</span><span class="h2">Te</span><span class="h">Po</span></span></p>
+    <div class="chips">
+      <span class="chip" data-sym="O"><b>O</b> · 8 · Ossigeno</span>
+      <span class="chip" data-sym="S"><b>S</b> · 16 · Zolfo</span>
+      <span class="chip" data-sym="Se"><b>Se</b> · 34 · Selenio</span>
+      <span class="chip" data-sym="Te"><b>Te</b> · 52 · Tellurio</span>
+      <span class="chip" data-sym="Po"><b>Po</b> · 84 · Polonio</span>
+    </div>
+    <p class="band-note">Una sola parola-treno: <b>O</b>-<b>S</b>-<b>Se</b>-<b>Te</b>-<b>Po</b>. Le evidenziazioni alternate (piena / contornata) ti aiutano a non fondere i simboli vicini.</p>
+  </div>
+</section>
+
+<!-- GRUPPO VII -->
+<section class="band" style="--bg:var(--g7);--ink2:var(--i7)">
+  <div class="band-num">VII</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo VII · Alogeni</span><span class="mono">IUPAC 17</span></div>
+    <p class="phrase"><span class="w"><span class="h">F</span>lora</span> <span class="w">e</span> <span class="w"><span class="h">Cl</span>ora</span> <span class="w"><span class="h">Br</span>indano</span> <span class="w"><span class="h">I</span>nsime</span> <span class="w"><span class="h">At</span>tavola</span></p>
+    <div class="chips">
+      <span class="chip" data-sym="F"><b>F</b> · 9 · Fluoro</span>
+      <span class="chip" data-sym="Cl"><b>Cl</b> · 17 · Cloro</span>
+      <span class="chip" data-sym="Br"><b>Br</b> · 35 · Bromo</span>
+      <span class="chip" data-sym="I"><b>I</b> · 53 · Iodio</span>
+      <span class="chip" data-sym="At"><b>At</b> · 85 · Astato</span>
+    </div>
+    <p class="band-note">Due nomi propri (Flora, Clora) e un brindisi: «<b>At</b>tavola» si legge <b>At</b> — Astato, l'ultimo degli alogeni.</p>
+  </div>
+</section>
+
+<!-- GRUPPO VIII -->
+<section class="band" style="--bg:var(--g8);--ink2:var(--i8)">
+  <div class="band-num">VIII</div>
+  <div class="band-body">
+    <div class="band-tag"><span>Gruppo VIII · Gas nobili</span><span class="mono">IUPAC 18</span></div>
+    <p class="phrase"><span class="w"><span class="h">He</span>lio</span> <span class="w">accende</span> <span class="w">il</span> <span class="w"><span class="h">Ne</span>on</span> <span class="w">sotto</span> <span class="w"><span class="h">Ar</span>co</span> <span class="w">della</span> <span class="w"><span class="h">Kr</span>ipta</span> <span class="w">di</span> <span class="w"><span class="h">Xe</span>no</span> <span class="w">e</span> <span class="w"><span class="h">R</span>ado<span class="h">n</span></span></p>
+    <div class="chips">
+      <span class="chip" data-sym="He"><b>He</b> · 2 · Elio</span>
+      <span class="chip" data-sym="Ne"><b>Ne</b> · 10 · Neon</span>
+      <span class="chip" data-sym="Ar"><b>Ar</b> · 18 · Argon</span>
+      <span class="chip" data-sym="Kr"><b>Kr</b> · 36 · Kripton</span>
+      <span class="chip" data-sym="Xe"><b>Xe</b> · 54 · Xeno</span>
+      <span class="chip" data-sym="Rn"><b>Rn</b> · 86 · Radon</span>
+    </div>
+    <p class="band-note">Una scena gotica completa: la cripta di Xeno illuminata al neon. Per il Radon bastano la <b>R</b> e la <b>n</b> finale.</p>
+  </div>
+</section>
+
+<div class="sec-head" id="tavola">
+  <h2>Dove vivono nella tavola</h2>
+  <span>Passa il mouse o tocca una casella · Tocca i chip qui sopra per localizzarla</span>
+</div>
+
+<section class="pt-wrap">
+  <div class="scroll-hint">&#8592; scorri la tavola &#8594;</div>
+  <div class="pt" id="ptable"></div>
+  <div class="pt-legend" id="plegend"></div>
+  <p class="pt-note">Tavola semplificata ai gruppi principali: colonne 1, 2 e 13–18 del sistema IUPAC (numerazione tradizionale I–VIII). Il blocco d tratteggiato al centro (colonne 3–12, metalli di transizione) e le due righe in basso (lantanidi e attinidi, blocco f) non sono coperti dalle frasi. L'idrogeno compare nel Gruppo I per posizione, pur non essendo un metallo alcalino.</p>
+</section>
+
+<div class="sec-head" id="metodo">
+  <h2>Perché funziona</h2>
+  <span>Tre regole della memoria</span>
+</div>
+
+<section class="method">
+  <article>
+    <span class="n">01</span>
+    <h3>Ogni parola nasconde un simbolo</h3>
+    <p>Le prime lettere di ogni parola coincidono — quasi sempre — con il simbolo chimico dell'elemento. L'evidenziazione ti allena l'occhio: dopo qualche lettura, vedrai «Ruba» e penserai automaticamente Rb.</p>
+  </article>
+  <article>
+    <span class="n">02</span>
+    <h3>L'ordine è la colonna</h3>
+    <p>Le parole non sono in fila a caso: seguono gli elementi del gruppo dall'alto verso il basso, cioè per numero atomico crescente. Recitando la frase reciti la colonna.</p>
+  </article>
+  <article>
+    <span class="n">03</span>
+    <h3>Più è assurda, più resta</h3>
+    <p>La memoria adora le immagini ridicole ed esagerate: un gallo indiano che balla sul tallone si ricorda molto meglio di «boro, alluminio, gallio, indio, tallio». E con gli adolescenti l'effetto raddoppia se nella frase scappa qualche parolaccia o parola proibita — vedi «Mannaggia», «Cesso» e «Stronzio»: l'attenzione e il coinvolgimento salgono subito, e la colonna resta impressa.</p>
+  </article>
+</section>
+
+<div class="latin">
+  <b>Eccezioni latine da sapere</b>
+  <span class="mono">K · kalium</span>
+  <span class="mono">Na · natrium</span>
+  <span class="mono">Sn · stannum</span>
+  <span class="mono">Pb · plumbum</span>
+  <span class="mono">Sb · stibium</span>
+</div>
+
+<footer>
+  <span>Mnemo·Tavola — i gruppi principali in otto frasi</span>
+  <span>Le frasi del prof. Nicolino Matera · Dmitrij Mendeleev, 1869</span>
+</footer>
+
+<div id="panel"></div>
+
+<script>
+const GROUPS = {
+  1:{num:'I',   name:'Metalli alcalini',        bg:'var(--g1)', ink:'var(--i1)'},
+  2:{num:'II',  name:'Metalli alcalino-terrosi',bg:'var(--g2)', ink:'var(--i2)'},
+  3:{num:'III', name:'Gruppo del boro',         bg:'var(--g3)', ink:'var(--i3)'},
+  4:{num:'IV',  name:'Gruppo del carbonio',     bg:'var(--g4)', ink:'var(--i4)'},
+  5:{num:'V',   name:"Gruppo dell'azoto",       bg:'var(--g5)', ink:'var(--i5)'},
+  6:{num:'VI',  name:"Gruppo dell'ossigeno",    bg:'var(--g6)', ink:'var(--i6)'},
+  7:{num:'VII', name:'Alogeni',                 bg:'var(--g7)', ink:'var(--i7)'},
+  8:{num:'VIII',name:'Gas nobili',              bg:'var(--g8)', ink:'var(--i8)'},
+};
+// z, sym, name, group, row(period), col, fragment html (phrase word with highlighted letters)
+const EL = [
+  [1,'H','Idrogeno',1,1,1,'<span class="h">H</span>o'],
+  [3,'Li','Litio',1,2,1,'<span class="h">Li</span>Na'],
+  [11,'Na','Sodio',1,3,1,'Li<span class="h">Na</span> · lat. natrium'],
+  [19,'K','Potassio',1,4,1,'<span class="h">K</span>e · lat. kalium'],
+  [37,'Rb','Rubidio',1,5,1,'<span class="h">R</span>u<span class="h">b</span>a'],
+  [55,'Cs','Cesio',1,6,1,'<span class="h">C</span>e<span class="h">s</span>so'],
+  [87,'Fr','Francio',1,7,1,'<span class="h">Fr</span>ancio'],
+  [4,'Be','Berillio',2,2,2,'<span class="h">Be</span>…'],
+  [12,'Mg','Magnesio',2,3,2,'<span class="h">M</span>anna<span class="h">g</span>ia'],
+  [20,'Ca','Calcio',2,4,2,'<span class="h">Ca</span>lcio'],
+  [38,'Sr','Stronzio',2,5,2,'<span class="h">S</span>t<span class="h">r</span>onzio'],
+  [56,'Ba','Bario',2,6,2,'<span class="h">Ba</span>Ra'],
+  [88,'Ra','Radio',2,7,2,'Ba<span class="h">Ra</span>'],
+  [5,'B','Boro',3,2,13,'<span class="h">B</span>alla'],
+  [13,'Al','Alluminio',3,3,13,'B<span class="h">Al</span>la'],
+  [31,'Ga','Gallio',3,4,13,'<span class="h">Ga</span>llo'],
+  [49,'In','Indio',3,5,13,'<span class="h">In</span>diano'],
+  [81,'Tl','Tallio',3,6,13,'<span class="h">T</span>a<span class="h">l</span>lone'],
+  [6,'C','Carbonio',4,2,14,'<span class="h">C</span>arlo'],
+  [14,'Si','Silicio',4,3,14,'<span class="h">Si</span>'],
+  [32,'Ge','Germanio',4,4,14,'<span class="h">Ge</span>tta'],
+  [50,'Sn','Stagno',4,5,14,'<span class="h">S</span>tag<span class="h">n</span>o · lat. stannum'],
+  [82,'Pb','Piombo',4,6,14,'<span class="h">P</span>iom<span class="h">b</span>o · lat. plumbum'],
+  [7,'N','Azoto',5,2,15,'<span class="h">N</span>on'],
+  [15,'P','Fosforo',5,3,15,'<span class="h">P</span>ortare'],
+  [33,'As','Arsenico',5,4,15,'<span class="h">A</span>r<span class="h">s</span>enico'],
+  [51,'Sb','Antimonio',5,5,15,'<span class="h">S</span>em<span class="h">b</span>ra · lat. stibium'],
+  [83,'Bi','Bismuto',5,6,15,'<span class="h">Bi</span>rra'],
+  [8,'O','Ossigeno',6,2,16,'<span class="h">O</span>SSeTePo'],
+  [16,'S','Zolfo',6,3,16,'O<span class="h">S</span>SeTePo'],
+  [34,'Se','Selenio',6,4,16,'OS<span class="h">Se</span>TePo'],
+  [52,'Te','Tellurio',6,5,16,'OSSe<span class="h">Te</span>Po'],
+  [84,'Po','Polonio',6,6,16,'OSSeTe<span class="h">Po</span>'],
+  [9,'F','Fluoro',7,2,17,'<span class="h">F</span>lora'],
+  [17,'Cl','Cloro',7,3,17,'<span class="h">Cl</span>ora'],
+  [35,'Br','Bromo',7,4,17,'<span class="h">Br</span>indano'],
+  [53,'I','Iodio',7,5,17,'<span class="h">I</span>nsime'],
+  [85,'At','Astato',7,6,17,'<span class="h">At</span>tavola'],
+  [2,'He','Elio',8,1,18,'<span class="h">He</span>lio'],
+  [10,'Ne','Neon',8,2,18,'<span class="h">Ne</span>on'],
+  [18,'Ar','Argon',8,3,18,"<span class=\"h\">Ar</span>co"],
+  [36,'Kr','Kripton',8,4,18,'<span class="h">Kr</span>ipta'],
+  [54,'Xe','Xeno',8,5,18,'<span class="h">Xe</span>no'],
+  [86,'Rn','Radon',8,6,18,'<span class="h">R</span>ado<span class="h">n</span>'],
+];
+
+const INFO = {
+H:{m:'1,008',c:"L'elemento più abbondante dell'universo: il Sole è quasi tutto idrogeno."},
+Li:{m:'6,94',c:"Il metallo più leggero: dà il nome alle batterie dei cellulari."},
+Na:{m:'22,99',c:"Puro, esplode nell'acqua; col cloro diventa il sale da cucina."},
+K:{m:'39,10',c:"Fa scattare i neuroni; le banane ne sono piene (e lievemente radioattive)."},
+Rb:{m:'85,47',c:"Così reattivo che prende fuoco all'aria; batte il tempo negli orologi atomici."},
+Cs:{m:'132,91',c:"Il secondo del mondo è definito dalle vibrazioni di un atomo di cesio."},
+Fr:{m:'≈ 223',c:"Il più raro in natura: sulla Terra ne esistono pochi grammi alla volta."},
+Be:{m:'9,01',c:"Leggero e rigidissimo: gli specchi del telescopio James Webb sono di berillio."},
+Mg:{m:'24,31',c:"Brucia con luce bianca accecante; è il cuore verde della clorofilla."},
+Ca:{m:'40,08',c:"Ossa, denti e calce: il nome viene dalla calx dei Romani."},
+Sr:{m:'87,62',c:"Il nome deriva da Strontian, il villaggio scozzese dove fu trovato il suo minerale; i fuochi d'artificio rossi sono opera sua."},
+Ba:{m:'137,33',c:"Dal greco barys, pesante; il «pasto al bario» mostra lo stomaco ai raggi X."},
+Ra:{m:'≈ 226',c:"Scoperto dai Curie; brillava al buio nei quadranti degli orologi."},
+B:{m:'10,81',c:"Rende il vetro Pyrex resistente agli sbalzi di temperatura."},
+Al:{m:'26,98',c:"Nell'Ottocento costava più dell'oro; oggi lo ricicliamo all'infinito."},
+Ga:{m:'69,72',c:"Fonde a 29,8 °C: un cucchiaino di gallio si scioglie in mano."},
+In:{m:'114,82',c:"Tenero come cera; il tuo touch screen funziona grazie all'ossido di indio."},
+Tl:{m:'204,38',c:"Incolore e insapore: il veleno preferito dei romanzi gialli."},
+C:{m:'12,01',c:"Diamante, grafite e tu: stesso elemento, forme opposte."},
+Si:{m:'28,09',c:"Dalla sabbia ai microchip: l'informatica moderna è costruita sul silicio."},
+Ge:{m:'72,63',c:"Con il germanio nacque il primo transistor, nel 1947."},
+Sn:{m:'118,71',c:"«Piange» quando lo pieghi; sotto i 13 °C si sgretola in polvere grigia."},
+Pb:{m:'207,2',c:"Dal latino plumbum: i Romani ci facevano i tubi dell'acqua (e le pentole)."},
+N:{m:'14,01',c:"Il 78% dell'aria che respiri; i Greci lo chiamavano «senza vita»."},
+P:{m:'30,97',c:"Scoperto da un alchimista che distillava urina; quello bianco brilla al buio."},
+As:{m:'74,92',c:"Il veleno dei Borgia; nell'Ottocento finiva persino nei cosmetici."},
+Sb:{m:'121,76',c:"Dal latino stibium: gli antichi Egizi lo usavano come mascara."},
+Bi:{m:'208,98',c:"Il più pesante elemento quasi-stabile; lo trovi nei farmaci per lo stomaco."},
+O:{m:'16,00',c:"L'elemento più abbondante della crosta terrestre; dal greco «genera acidi»."},
+S:{m:'32,06',c:"Uova marce, fiammiferi e vulcani: lo zolfo si fa sempre riconoscere."},
+Se:{m:'78,97',c:"Da selene, Luna in greco: scoperto subito dopo il Tellurio, che viene dalla Terra."},
+Te:{m:'127,60',c:"Da tellus, Terra; pochi microgrammi e il tuo alito sa d'aglio per giorni."},
+Po:{m:'≈ 209',c:"Marie Curie lo chiamò così per la sua Polonia; è talmente radioattivo che emana luce azzurra."},
+F:{m:'19,00',c:"L'elemento più reattivo di tutti; nei dentifrici protegge lo smalto."},
+Cl:{m:'35,45',c:"Dal greco chloros, verde-giallo: il colore del gas; disinfetta acquedotti e piscine."},
+Br:{m:'79,90',c:"Unico non-metallo liquido a temperatura ambiente; il nome greco vuol dire «puzza»."},
+I:{m:'126,90',c:"Scaldato fa vapori viola (iodos = violetto); lo conosci dalla tintura sulle ferite."},
+At:{m:'≈ 210',c:"L'elemento naturale più raro della crosta terrestre: in tutto, meno di 30 grammi."},
+He:{m:'4,00',c:"Scoperto nel Sole (helios) prima che sulla Terra; inalato, fa la voce da paperino."},
+Ne:{m:'20,18',c:"«Nuovo» in greco; le insegne luminose rosso-arancio sono tubi pieni di neon."},
+Ar:{m:'39,95',c:"Dal greco argos, pigro: non combina nulla, per questo riempie le lampadine."},
+Kr:{m:'83,80',c:"«Il nascosto»: così raro e inerte che sfuggì ai chimici fino al 1898."},
+Xe:{m:'131,29',c:"«Lo straniero»; i motori ionici dei satelliti lo sputano nello spazio."},
+Rn:{m:'≈ 222',c:"Gas radioattivo che risale dal terreno e si accumula nelle cantine."},
+};
+const GPHRASE = {
+1:'<span class="h">H</span>o <span class="h">Li</span><span class="h2">Na</span> <span class="h">K</span>e <span class="h">R</span>u<span class="h">b</span>a il <span class="h">C</span>e<span class="h">s</span>so a <span class="h">Fr</span>ancio',
+2:'<span class="h">Be</span> <span class="h">M</span>anna<span class="h">g</span>ia da un <span class="h">Ca</span>lcio a quello <span class="h">S</span>t<span class="h">r</span>onzio che <span class="h">Ba</span><span class="h2">Ra</span>',
+3:'<span class="h">B</span><span class="h2">Al</span>la un <span class="h">Ga</span>llo <span class="h">In</span>diano sul <span class="h">T</span>a<span class="h">l</span>lone',
+4:'<span class="h">C</span>arlo <span class="h">Si</span> <span class="h">Ge</span>tta in uno <span class="h">S</span>tag<span class="h">n</span>o di <span class="h">P</span>iom<span class="h">b</span>o',
+5:'<span class="h">N</span>on <span class="h">P</span>ortare <span class="h">A</span>r<span class="h">s</span>enico <span class="h">S</span>em<span class="h">b</span>ra <span class="h">Bi</span>rra',
+6:'<span class="h">O</span><span class="h2">S</span><span class="h">Se</span><span class="h2">Te</span><span class="h">Po</span>',
+7:'<span class="h">F</span>lora e <span class="h">Cl</span>ora <span class="h">Br</span>indano <span class="h">I</span>nsime <span class="h">At</span>tavola',
+8:'<span class="h">He</span>lio accende il <span class="h">Ne</span>on sotto <span class="h">Ar</span>co della <span class="h">Kr</span>ipta di <span class="h">Xe</span>no e <span class="h">R</span>ado<span class="h">n</span>',
+};
+
+const pt = document.getElementById('ptable');
+
+// --- header row: group numerals ---
+const heads = [
+  {label:'I', sub:'1', col:1, span:1},
+  {label:'II', sub:'2', col:2, span:1},
+  {label:'III', sub:'13', col:13, span:1},
+  {label:'IV', sub:'14', col:14, span:1},
+  {label:'V', sub:'15', col:15, span:1},
+  {label:'VI', sub:'16', col:16, span:1},
+  {label:'VII', sub:'17', col:17, span:1},
+  {label:'VIII', sub:'18', col:18, span:1},
+];
+heads.forEach(h=>{
+  const d = document.createElement('div');
+  d.className = 'gh' + (h.spacer ? ' spacer' : '');
+  d.style.gridRow = 1;
+  d.style.gridColumn = `${h.col} / span ${h.span}`;
+  d.innerHTML = `${h.label}<span class="mono">IUPAC ${h.sub}</span>`;
+  pt.appendChild(d);
+});
+
+// --- empty cells (periods 1-7, skipping element spots and the merged gap region) ---
+const taken = new Set(EL.map(e => e[4] + '-' + e[5]));
+for (let r = 1; r <= 7; r++) {
+  for (let c = 1; c <= 18; c++) {
+    if (taken.has(r + '-' + c)) continue;
+    if (c >= 3 && c <= 12) continue; // void (periods 1-3) + merged d-block gap (4-7)
+    const d = document.createElement('div');
+    d.className = 'empty';
+    d.style.gridRow = r + 1;
+    d.style.gridColumn = c;
+    pt.appendChild(d);
+  }
+}
+// --- clean void above the d-block (periods 1-3, cols 3-12): no grid lines ---
+const voidc = document.createElement('div');
+voidc.className = 'voidcell';
+voidc.style.gridRow = '1 / span 4';
+voidc.style.gridColumn = '3 / span 10';
+pt.appendChild(voidc);
+
+// --- merged gap cell: transition metals block ---
+const gap = document.createElement('div');
+gap.className = 'gapcell';
+gap.style.gridRow = '5 / span 4';
+gap.style.gridColumn = '3 / span 10';
+gap.textContent = 'blocco d · metalli di transizione';
+[['lantanidi','La – Lu · periodo 6', 9], ['attinidi','Ac – Lr · periodo 7', 10]].forEach(([t, sub, row])=>{
+  const f = document.createElement('div');
+  f.className = 'gapcell frow';
+  f.style.gridRow = row;
+  f.style.gridColumn = '1 / span 18';
+  f.innerHTML = `<span>${t}&nbsp;&nbsp;<span class="mono" style="letter-spacing:.06em;text-transform:none;font-weight:500">${sub}</span></span>`;
+  pt.appendChild(f);
+});
+pt.appendChild(gap);
+
+// --- element cells ---
+const panel = document.getElementById('panel');
+const cellBySym = {};
+const hoverOK = window.matchMedia('(hover: hover)').matches;
+function openPanel(e){
+  const [z, sym, name, g, r] = e;
+  const G = GROUPS[g], info = INFO[sym];
+  panel.innerHTML = `
+    <button class="p-close" aria-label="Chiudi">&times;</button>
+    <div class="p-g"><span>Gruppo ${G.num} · ${G.name}</span><span class="mono">n° ${z}</span></div>
+    <div class="p-sym" style="color:${G.bg}">${sym}</div>
+    <div class="p-name">${name}</div>
+    <div class="p-z">numero atomico ${z} · periodo ${r} · massa atomica ${info.m} u</div>
+    <div class="p-frag">Nella frase: «${GPHRASE[g]}»</div>
+    <div class="p-cur"><b>Curiosità.</b> ${info.c}</div>`;
+  panel.classList.add('on');
+  panel.querySelector('.p-close').onclick = ev => { ev.stopPropagation(); panel.classList.remove('on'); };
+}
+EL.forEach(e => {
+  const [z, sym, name, g, r, c, frag] = e;
+  const G = GROUPS[g];
+  const d = document.createElement('div');
+  d.className = 'el';
+  d.style.gridRow = r + 1;
+  d.style.gridColumn = c;
+  d.style.setProperty('--bg', G.bg);
+  d.style.setProperty('--ink2', G.ink);
+  d.dataset.sym = sym;
+  d.innerHTML = `<span class="z">${z}</span><span class="s">${sym}</span>`;
+  if (hoverOK) {
+    d.addEventListener('mouseenter', () => openPanel(e));
+    d.addEventListener('mouseleave', () => panel.classList.remove('on'));
+  }
+  d.addEventListener('click', ev => { ev.stopPropagation(); openPanel(e); });
+  pt.appendChild(d);
+  cellBySym[sym] = d;
+});
+document.addEventListener('click', () => panel.classList.remove('on'));
+
+// --- legend ---
+const legend = document.getElementById('plegend');
+Object.values(GROUPS).forEach(G => {
+  const s = document.createElement('span');
+  s.innerHTML = `<i style="background:${G.bg}"></i>${G.num} · ${G.name}`;
+  legend.appendChild(s);
+});
+
+// --- chips flash the matching table cell ---
+document.querySelectorAll('.chip').forEach(ch => {
+  const sym = ch.dataset.sym;
+  const fire = () => {
+    const cell = cellBySym[sym];
+    if (!cell) return;
+    cell.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'});
+    cell.classList.remove('flash');
+    void cell.offsetWidth;
+    cell.classList.add('flash');
+  };
+  ch.addEventListener('mouseenter', fire);
+  ch.addEventListener('click', fire);
+});
+</script>
+</body>
+</html>
