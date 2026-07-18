@@ -81,7 +81,7 @@ html,body{height:100%;overflow:hidden;background:var(--paper);color:var(--ink);f
 .erow{display:flex;align-items:center;gap:8px;font-size:11px;color:#3a342b;padding:2.5px 0}
 .erow .eln{width:16px;height:2.5px;border-radius:2px;flex-shrink:0}
 
-#detail{position:absolute;top:86px;right:30px;width:314px;z-index:6;background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--hair);border-radius:18px;padding:22px 22px 20px;box-shadow:0 16px 44px rgba(40,30,10,.12);opacity:0;transform:translateY(8px) scale(.99);pointer-events:none;transition:opacity .28s,transform .28s;max-height:calc(100vh - 128px);overflow-y:auto}
+#detail{position:absolute;top:86px;right:30px;width:314px;z-index:9;background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--hair);border-radius:18px;padding:22px 22px 20px;box-shadow:0 16px 44px rgba(40,30,10,.12);opacity:0;transform:translateY(8px) scale(.99);pointer-events:none;transition:opacity .28s,transform .28s,top .2s;max-height:calc(100vh - 128px);overflow-y:auto}
 #detail.show{opacity:1;transform:none;pointer-events:auto}
 #detail .cat{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:5px 10px;border-radius:20px;margin-bottom:13px}
 #detail .cat .d{width:7px;height:7px;border-radius:50%}
@@ -367,18 +367,49 @@ const nodeMat=new THREE.ShaderMaterial({uniforms:{tex:{value:disc()}},
   transparent:true,depthTest:true,depthWrite:false,blending:THREE.NormalBlending});
 const points=new THREE.Points(nodeGeo,nodeMat);group.add(points);
 
-const epos=new Float32Array(EDGES.length*6),ecol=new Float32Array(EDGES.length*6),ealpha=new Float32Array(EDGES.length*2).fill(1);
+// ---- edges rendered as camera-facing thick quads (native GL line width is ignored by most browsers) ----
+const EN=EDGES.length;
+const qPosA=new Float32Array(EN*6*3),qPosB=new Float32Array(EN*6*3),qCorner=new Float32Array(EN*6*2),qColor=new Float32Array(EN*6*3),qAlpha=new Float32Array(EN*6).fill(1);
 const eBaseCol=[];
-EDGES.forEach((e,i)=>{const a=home[e.source],b=home[e.target];epos.set([a[0],a[1],a[2],b[0],b[1],b[2]],i*6);const col=hexToRgb(ETYPE[e.type].c);eBaseCol.push(col);ecol.set([...col,...col],i*6);});
+const edgeAlphaSrc=new Float32Array(EN).fill(1);
+const edgeColorSrc=new Float32Array(EN*3);
+const CORNER_PATTERN=[-1,0, -1,1, 1,1,  -1,0, 1,1, 1,0]; // 2 triangles: A-,B-,B+ / A-,B+,A+
+EDGES.forEach((e,i)=>{
+  const a=home[e.source],b=home[e.target];const col=hexToRgb(ETYPE[e.type].c);eBaseCol.push(col);
+  edgeColorSrc.set(col,i*3);
+  for(let v=0;v<6;v++){
+    qPosA.set(a,(i*6+v)*3);qPosB.set(b,(i*6+v)*3);
+    qCorner[(i*6+v)*2]=CORNER_PATTERN[v*2];qCorner[(i*6+v)*2+1]=CORNER_PATTERN[v*2+1];
+    qColor.set(col,(i*6+v)*3);
+  }
+});
 const edgeGeo=new THREE.BufferGeometry();
-edgeGeo.setAttribute('position',new THREE.BufferAttribute(epos,3));
-edgeGeo.setAttribute('color',new THREE.BufferAttribute(ecol,3));
-edgeGeo.setAttribute('alpha',new THREE.BufferAttribute(ealpha,1));
-const edgeMat=new THREE.ShaderMaterial({uniforms:{op:{value:0.28}},
-  vertexShader:'attribute vec3 color;attribute float alpha;varying vec3 vC;varying float vA;void main(){vC=color;vA=alpha;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+edgeGeo.setAttribute('position',new THREE.BufferAttribute(qPosA,3)); // dummy, real work done via posA/posB below
+edgeGeo.setAttribute('posA',new THREE.BufferAttribute(qPosA,3));
+edgeGeo.setAttribute('posB',new THREE.BufferAttribute(qPosB,3));
+edgeGeo.setAttribute('corner',new THREE.BufferAttribute(qCorner,2));
+edgeGeo.setAttribute('color',new THREE.BufferAttribute(qColor,3));
+edgeGeo.setAttribute('alpha',new THREE.BufferAttribute(qAlpha,1));
+const edgeMat=new THREE.ShaderMaterial({uniforms:{op:{value:0.28},resolution:{value:new THREE.Vector2(W,H)}},
+  vertexShader:'attribute vec3 posA;attribute vec3 posB;attribute vec2 corner;attribute vec3 color;attribute float alpha;'+
+    'uniform vec2 resolution;varying vec3 vC;varying float vA;'+
+    'void main(){vC=color;vA=alpha;'+
+    'vec4 clipA=projectionMatrix*modelViewMatrix*vec4(posA,1.0);'+
+    'vec4 clipB=projectionMatrix*modelViewMatrix*vec4(posB,1.0);'+
+    'vec2 pxA=(clipA.xy/clipA.w)*resolution*0.5;'+
+    'vec2 pxB=(clipB.xy/clipB.w)*resolution*0.5;'+
+    'vec2 dir=normalize(pxB-pxA+vec2(1e-4));'+
+    'vec2 nrm=vec2(-dir.y,dir.x);'+
+    'float thick=1.05;'+
+    'vec4 chosen=corner.y<0.5?clipA:clipB;'+
+    'vec2 pxChosen=corner.y<0.5?pxA:pxB;'+
+    'vec2 pxOff=nrm*corner.x*(thick*0.5);'+
+    'vec2 newPx=pxChosen+pxOff;'+
+    'vec2 newNDC=newPx/(resolution*0.5);'+
+    'gl_Position=vec4(newNDC*chosen.w,chosen.z,chosen.w);}',
   fragmentShader:'uniform float op;varying vec3 vC;varying float vA;void main(){gl_FragColor=vec4(vC,op*vA);}',
   transparent:true,depthWrite:false,blending:THREE.NormalBlending});
-const lines=new THREE.LineSegments(edgeGeo,edgeMat);group.add(lines);
+const lines=new THREE.Mesh(edgeGeo,edgeMat);group.add(lines);
 
 // ---- trail particles: flow along active edges when a node is selected, showing semantic direction ----
 const PPE=3; // particles per active edge
@@ -455,12 +486,15 @@ function pick(e){const r=renderer.domElement.getBoundingClientRect();mouse.x=((e
   if(vis.length)select(NODES[vis[0].index].id);else clearSelect();}
 function select(id){if(typeof clearCatUI==='function')clearCatUI();clearDayUI();dayFocus=null;selected=id;const nb=new Set([id]);adj[id].forEach(a=>nb.add(a.id));focusSet=nb;
   NODES.forEach((n,i)=>{const on=activeCats.has(n.category);alpha[i]=on?(nb.has(n.id)?1:0.09):0.03;sizes[i]=baseSize[i]*(n.id===id?1.5:(nb.has(n.id)?1.14:1));});
-  activeEdgeIdx=[];EDGES.forEach((e,i)=>{const touch=(e.source===id||e.target===id);const vis=activeCats.has(byId[e.source].category)&&activeCats.has(byId[e.target].category);const v=touch&&vis?1:0.035;ealpha[i*2]=v;ealpha[i*2+1]=v;const col=touch&&vis?eBaseCol[i]:DIM;ecol.set([...col,...col],i*6);if(touch&&vis)activeEdgeIdx.push(i);});
-  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.62:0.75;showDetail(id);}
+  activeEdgeIdx=[];EDGES.forEach((e,i)=>{const touch=(e.source===id||e.target===id);const vis=activeCats.has(byId[e.source].category)&&activeCats.has(byId[e.target].category);const v=touch&&vis?1:0.035;edgeAlphaSrc[i]=v;const col=touch&&vis?eBaseCol[i]:DIM;edgeColorSrc.set(col,i*3);if(touch&&vis)activeEdgeIdx.push(i);});
+  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.62:0.75;showDetail(id);}
 function clearSelect(){selected=null;focusSet=null;activeEdgeIdx=[];NODES.forEach((n,i)=>{const on=activeCats.has(n.category);alpha[i]=on?1:0.05;sizes[i]=baseSize[i];});
-  EDGES.forEach((e,i)=>{const vis=activeCats.has(byId[e.source].category)&&activeCats.has(byId[e.target].category);const v=vis?1:0.035;ealpha[i*2]=v;ealpha[i*2+1]=v;ecol.set([...eBaseCol[i],...eBaseCol[i]],i*6);});
-  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.22:0.28;document.getElementById('detail').classList.remove('show');document.body.classList.remove('detail-open');}
-function showDetail(id){const n=byId[id],cat=CATS[n.category]||{},col=cat.color||'#333';
+  EDGES.forEach((e,i)=>{const vis=activeCats.has(byId[e.source].category)&&activeCats.has(byId[e.target].category);const v=vis?1:0.035;edgeAlphaSrc[i]=v;edgeColorSrc.set(eBaseCol[i],i*3);});
+  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.22:0.28;document.getElementById('detail').classList.remove('show');document.body.classList.remove('detail-open');}
+function positionDetail(){const dEl=document.getElementById('detail');if(W<820){dEl.style.top='';return;}
+  const tb=document.getElementById('topbar');const tr=tb.getBoundingClientRect();const wr=wrap.getBoundingClientRect();
+  dEl.style.top=Math.round(tr.bottom-wr.top+14)+'px';}
+function showDetail(id){positionDetail();const n=byId[id],cat=CATS[n.category]||{},col=cat.color||'#333';
   const neigh=adj[id].map(a=>({n:byId[a.id],rel:a.rel,type:a.type})).filter(o=>activeCats.has(o.n.category)).sort((a,b)=>deg[b.n.id]-deg[a.n.id]);
   const rgb=hexToRgb(col).map(v=>Math.round(v*255)),tint='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',.12)';
   let h='<div class="cat" style="background:'+tint+';color:'+col+'"><span class="d" style="background:'+col+'"></span>'+(cat.label||n.category)+'</div>';
@@ -522,8 +556,8 @@ function highlightSet(set,centerId){
   selected=null;document.getElementById('detail').classList.remove('show');document.body.classList.remove('detail-open');
   focusSet=set;
   NODES.forEach((n,i)=>{const on=activeCats.has(n.category);alpha[i]=on&&set.has(n.id)?1:0.045;sizes[i]=baseSize[i]*(n.id===centerId?1.4:(set.has(n.id)?1.1:1));});
-  EDGES.forEach((e,i)=>{const inSet=set.has(e.source)&&set.has(e.target);const v=inSet?1:0.03;ealpha[i*2]=v;ealpha[i*2+1]=v;const col=inSet?eBaseCol[i]:DIM;ecol.set([...col,...col],i*6);});
-  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.6:0.72;
+  activeEdgeIdx=[];EDGES.forEach((e,i)=>{const inSet=set.has(e.source)&&set.has(e.target);const v=inSet?1:0.03;edgeAlphaSrc[i]=v;const col=inSet?eBaseCol[i]:DIM;edgeColorSrc.set(col,i*3);if(inSet)activeEdgeIdx.push(i);});
+  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.6:0.72;
 }
 function focusNode(id){dayFocus=id;const nb=new Set([id]);adj[id].forEach(a=>nb.add(a.id));highlightSet(nb,id);setActivePill(id);}
 function clearNav(){dayFocus=null;focusSet=null;setActivePill('all');clearSelect();}
@@ -589,8 +623,8 @@ function highlightPath(pathArr){const set=new Set(pathArr);focusSet=set;selected
   const edgeSet=new Set();for(let i=0;i<pathArr.length-1;i++){edgeSet.add(pathArr[i]+'|'+pathArr[i+1]);edgeSet.add(pathArr[i+1]+'|'+pathArr[i]);}
   NODES.forEach((n,i)=>{const inP=set.has(n.id);alpha[i]=inP?1:0.05;sizes[i]=baseSize[i]*(inP?1.25:1);});
   const acc=hexToRgb(dark?'#ff7a3c':'#e8590c');
-  EDGES.forEach((e,i)=>{const on=edgeSet.has(e.source+'|'+e.target);const v=on?1:0.03;ealpha[i*2]=v;ealpha[i*2+1]=v;const col=on?acc:DIM;ecol.set([...col,...col],i*6);});
-  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.85:0.9;}
+  activeEdgeIdx=[];EDGES.forEach((e,i)=>{const on=edgeSet.has(e.source+'|'+e.target);const v=on?1:0.03;edgeAlphaSrc[i]=v;const col=on?acc:DIM;edgeColorSrc.set(col,i*3);if(on)activeEdgeIdx.push(i);});
+  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.85:0.9;}
 function renderPathCard(){
   if(!pathA){pathBody.innerHTML='<div class="phint">Tocca il <b>primo</b> nodo del percorso.</div>';pathCard.classList.add('show');return;}
   if(pathA&&!pathB){pathBody.innerHTML='<div class="phint">Partenza: <b>'+byId[pathA].label+'</b>.<br>Ora tocca il <b>secondo</b> nodo.</div>';pathCard.classList.add('show');return;}
@@ -606,8 +640,8 @@ function renderPathCard(){
 function handlePathPick(id){
   if(!pathA||(pathA&&pathB)){pathA=id;pathB=null;focusSet=new Set([id]);
     NODES.forEach((n,i)=>{alpha[i]=n.id===id?1:0.5;sizes[i]=baseSize[i]*(n.id===id?1.4:1);});
-    EDGES.forEach((e,i)=>{ealpha[i*2]=0.04;ealpha[i*2+1]=0.04;ecol.set([...DIM,...DIM],i*6);});
-    nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;
+    EDGES.forEach((e,i)=>{edgeAlphaSrc[i]=0.04;edgeColorSrc.set(DIM,i*3);});
+    nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;
     renderPathCard();
   } else if(!pathB){ if(id===pathA)return; pathB=id; renderPathCard(); }
 }
@@ -644,8 +678,8 @@ function showCat(key){const cfg=CATMODES[key];if(!cfg)return;
   for(const k in CATMODES){const b=document.getElementById(CATMODES[k].btn);if(b)b.classList.toggle('on',k===key);}
   focusSet=set;selected=null;dayFocus=null;
   NODES.forEach((n,i)=>{const inS=set.has(n.id);alpha[i]=inS?1:0.045;sizes[i]=baseSize[i]*(emph.has(n.id)?1.32:(inS?1.06:1));});
-  EDGES.forEach((e,i)=>{const inS=set.has(e.source)&&set.has(e.target);const v=inS?1:0.03;ealpha[i*2]=v;ealpha[i*2+1]=v;const col=inS?eBaseCol[i]:DIM;ecol.set([...col,...col],i*6);});
-  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.6:0.72;
+  activeEdgeIdx=[];EDGES.forEach((e,i)=>{const inS=set.has(e.source)&&set.has(e.target);const v=inS?1:0.03;edgeAlphaSrc[i]=v;const col=inS?eBaseCol[i]:DIM;edgeColorSrc.set(col,i*3);if(inS)activeEdgeIdx.push(i);});
+  nodeGeo.attributes.alpha.needsUpdate=true;nodeGeo.attributes.size.needsUpdate=true;edgeMat.uniforms.op.value=dark?0.6:0.72;
 }
 for(const k in CATMODES){const b=document.getElementById(CATMODES[k].btn);if(b)b.onclick=(function(key){return function(){catMode===key?endCat():showCat(key);};})(k);}
 
@@ -670,7 +704,7 @@ window.addEventListener('keydown',e=>{if(document.activeElement&&document.active
   if(e.key==='ArrowUp'){panTarget(0,sp);}else if(e.key==='ArrowDown'){panTarget(0,-sp);}else if(e.key==='ArrowLeft'){panTarget(-sp,0);}else if(e.key==='ArrowRight'){panTarget(sp,0);}else return;e.preventDefault();});
 function countUp(el,to,dur){const t0=performance.now();function f(t){const p=Math.min(1,(t-t0)/dur);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
 countUp(document.getElementById('s-nodes'),NODES.length,1400);countUp(document.getElementById('s-edges'),EDGES.length,1700);
-window.addEventListener('resize',()=>{W=wrap.clientWidth;H=wrap.clientHeight;cam.aspect=W/H;cam.updateProjectionMatrix();renderer.setSize(W,H);if(typeof heroReady!=='undefined'&&heroReady&&!selected){camDist=fitDist();clampDist();updateCam();}});
+window.addEventListener('resize',()=>{W=wrap.clientWidth;H=wrap.clientHeight;cam.aspect=W/H;cam.updateProjectionMatrix();renderer.setSize(W,H);if(typeof heroReady!=='undefined'&&heroReady&&!selected){camDist=fitDist();clampDist();updateCam();}positionDetail();if(edgeMat&&edgeMat.uniforms.resolution)edgeMat.uniforms.resolution.value.set(W,H);});
 
 /* labels */
 const labelLayer=document.getElementById('labels');const labelEls={};
@@ -707,9 +741,13 @@ function tick(){t+=0.016;if(spinning&&!drag){rotY+=0.0010;updateCam();}
     if(alive&&NODES[i].id!=='programma'){ox=Math.sin(t*d.fx+d.px)*d.ax;oy=Math.sin(t*d.fy+d.py)*d.ay;oz=Math.sin(t*d.fz+d.pz)*d.az;}
     cur[i*3]=h[0]+ox;cur[i*3+1]=h[1]+oy;cur[i*3+2]=h[2]+oz;positions[i*3]=cur[i*3];positions[i*3+1]=cur[i*3+1];positions[i*3+2]=cur[i*3+2];}
   nodeGeo.attributes.position.needsUpdate=true;
-  for(let i=0;i<EDGES.length;i++){const a=nodeIdx[EDGES[i].source],b=nodeIdx[EDGES[i].target];epos[i*6]=cur[a*3];epos[i*6+1]=cur[a*3+1];epos[i*6+2]=cur[a*3+2];epos[i*6+3]=cur[b*3];epos[i*6+4]=cur[b*3+1];epos[i*6+5]=cur[b*3+2];}
-  edgeGeo.attributes.position.needsUpdate=true;
-  if(activeEdgeIdx.length)updateTrails(nodeIdx);else if(trAlpha[0]!==0||trAlpha.some(v=>v!==0)){trAlpha.fill(0);trailGeo.attributes.alpha.needsUpdate=true;}
+  for(let i=0;i<EN;i++){const a=nodeIdx[EDGES[i].source],b=nodeIdx[EDGES[i].target];
+    const ax=cur[a*3],ay=cur[a*3+1],az=cur[a*3+2],bx=cur[b*3],by=cur[b*3+1],bz=cur[b*3+2];
+    const av=edgeAlphaSrc[i],cr=edgeColorSrc[i*3],cg=edgeColorSrc[i*3+1],cb=edgeColorSrc[i*3+2];
+    for(let v=0;v<6;v++){const o=(i*6+v);qPosA[o*3]=ax;qPosA[o*3+1]=ay;qPosA[o*3+2]=az;qPosB[o*3]=bx;qPosB[o*3+1]=by;qPosB[o*3+2]=bz;
+      qColor[o*3]=cr;qColor[o*3+1]=cg;qColor[o*3+2]=cb;qAlpha[o]=av;}}
+  edgeGeo.attributes.posA.needsUpdate=true;edgeGeo.attributes.posB.needsUpdate=true;edgeGeo.attributes.color.needsUpdate=true;edgeGeo.attributes.alpha.needsUpdate=true;
+  if(activeEdgeIdx.length)updateTrails(nodeIdx);else if(trAlpha.some(v=>v!==0)){trAlpha.fill(0);trailGeo.attributes.alpha.needsUpdate=true;}
   renderer.render(scene,cam);updateLabels();requestAnimationFrame(tick);}
 tick();
 </script>
